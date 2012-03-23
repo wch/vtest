@@ -1,0 +1,15 @@
+Package: vtest
+Title: Tools for visual testing of R packages
+Version: 0.0.1
+Author: Winston Chang <winston@stdout.org>
+Maintainer: Winston Chang <winston@stdout.org>
+Description: Tools for visual testing of R packages
+Depends:
+    R (>= 2.14)
+Imports:
+    devtools,
+    ggplot2,
+    digest
+License: MIT
+Collate:
+    'visual-test.r'
