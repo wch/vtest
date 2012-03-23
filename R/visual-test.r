@@ -3,6 +3,8 @@ set_vtest_pkg <- NULL
 get_vtest_pkg <- NULL
 set_vtest_path <- NULL
 get_vtest_path <- NULL
+set_vtest_outdir <- NULL
+get_vtest_outdir <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
@@ -12,6 +14,7 @@ append_vtestinfo <- NULL
 local({
   pkg <- NULL      # The package object
   testpath <- NULL # The path to the test (usually package/visual_test/)
+  outdir <- NULL   # Where the output files are saved
 
   context <- NULL  # The context of a set of tests (usually in one script)
   testinfo <- NULL # Information about each test in a context
@@ -20,7 +23,9 @@ local({
   set_vtest_pkg <<- function(value) pkg <<- value
   get_vtest_pkg <<- function() pkg
   set_vtest_path <<- function (value) testpath <<- value
-  get_vtest_path <<- function () testpath
+  get_vtest_path <<- function() testpath
+  set_vtest_outdir <<- function (value) outdir <<- value
+  get_vtest_outdir <<- function() outdir
 
   # These are used by each test script
   get_vcontext <<- function() context
@@ -44,7 +49,7 @@ local({
 
 # Run visual tests
 #' @export
-vtest <- function(pkg = NULL, filter = NULL, showhelp = TRUE) {
+vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
 
@@ -55,6 +60,27 @@ vtest <- function(pkg = NULL, filter = NULL, showhelp = TRUE) {
     return()
 
   set_vtest_path(test_path)
+
+  if (is.null(outdir)) {
+    # Default output directory would be ggplot2/../ggplot2-vtest
+    p <- strsplit(pkg$path, "/")[[1]]
+    outdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
+                collapse="/")
+  }
+
+  set_vtest_outdir(outdir)
+
+  if (showhelp)
+    message("Saving output to directory ", outdir)
+
+  if (!file.exists(outdir)) {
+    resp <- readline(paste(outdir, "does not exist! Create? (y/n) "))
+    if (tolower(resp) != "y")
+      return(invisible())
+
+    dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+  }
+
 
   files <- dir(test_path, filter, full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
@@ -112,7 +138,6 @@ end_vcontext <- function() {
 # * height: height in inches
 # * dpi: pixels per inch (OK, it really should be ppi)
 # * device: string with name of output device. Only "pdf" is supported now.
-
 #' @export
 save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "pdf") {
   if (is.null(get_vcontext()))     stop("Must have active vcontext")
@@ -138,7 +163,7 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Get a hash of the file contents
   filehash <- digest(cleanpdf, file = TRUE)
-  file.rename(cleanpdf, file.path(get_vtest_path(), get_vcontext(), filehash))
+  file.rename(cleanpdf, file.path(get_vtest_outdir(), filehash))
 
   # Append the info for this test in the vis_info list
   append_vtestinfo(data.frame(desc = desc,
