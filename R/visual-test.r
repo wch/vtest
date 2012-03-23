@@ -5,6 +5,10 @@ set_vtest_path <- NULL
 get_vtest_path <- NULL
 set_vtest_outdir <- NULL
 get_vtest_outdir <- NULL
+set_vtest_commit <- NULL
+get_vtest_commit <- NULL
+set_vtest_git_clean <- NULL
+get_vtest_git_clean <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
@@ -70,7 +74,6 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   set_vtest_commit(git_find_commit_hash(pkg$path))
   set_vtest_git_clean(git_check_clean(pkg$path))
 
-
   if (is.null(outdir)) {
     # Default output directory would be ggplot2/../ggplot2-vtest
     p <- strsplit(pkg$path, "/")[[1]]
@@ -91,7 +94,7 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
     dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
   }
 
-
+  # Run the test scripts
   files <- dir(test_path, filter, full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
   lapply(files, source)
