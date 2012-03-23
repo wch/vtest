@@ -12,6 +12,7 @@ get_vtest_git_clean <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
+init_vtestinfo <- NULL
 get_vtestinfo <- NULL
 append_vtestinfo <- NULL
 
@@ -41,11 +42,14 @@ local({
   get_vcontext <<- function() context
   set_vcontext <<- function(value) {
     context <<- value
-    testinfo <<- data.frame()
   }
 
-  # These are used by the individual tests within a test
+  # TODO: Get rid of this...
+  init_vtestinfo <<- function() testinfo <<- data.frame()
+
   get_vtestinfo <<- function() testinfo
+
+  # Add information about a single test
   append_vtestinfo <<- function(value) {
     # Check that description hash isn't already used
     if (sum(value$deschash == testinfo$deschash) != 0)
@@ -94,6 +98,9 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
     dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
   }
 
+
+  init_vtestinfo()
+
   # Run the test scripts
   files <- dir(test_path, filter, full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
@@ -133,9 +140,6 @@ end_vcontext <- function() {
     message("No open vcontext to end.")
     return(invisible())
   }
-
-  # Save the test information into a file
-  dput(get_vtestinfo(), file.path(get_vtest_path(), get_vcontext(), "testinfo.dat"))
 
   set_vcontext(NULL)  # Reset the context
   message("")         # Print a newline
@@ -179,7 +183,7 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   file.rename(cleanpdf, file.path(get_vtest_outdir(), filehash))
 
   # Append the info for this test in the vis_info list
-  append_vtestinfo(data.frame(desc = desc,
+  append_vtestinfo(data.frame(context = get_vcontext(), desc = desc,
     type = device, width = width, height = height, dpi = dpi,
     err = err, hash = filehash, stringsAsFactors = FALSE))
 
