@@ -43,6 +43,7 @@ local({
 
 
 # Run visual tests
+#' @export
 vtest <- function(pkg = NULL, filter = NULL, showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
@@ -72,6 +73,7 @@ vtest <- function(pkg = NULL, filter = NULL, showhelp = TRUE) {
 
 
 # Start a visual test context
+#' @export
 vcontext <- function(context) {
   if (!is.null(get_vcontext()))
     stop("Can't open new context while current context is still open. Use end_vcontext().")
@@ -86,6 +88,7 @@ vcontext <- function(context) {
 
 
 # Finish a visual test context.
+#' @export
 end_vcontext <- function() {
   if(is.null(get_vcontext())) {
     message("No open vcontext to end.")
@@ -109,42 +112,38 @@ end_vcontext <- function() {
 # * height: height in inches
 # * dpi: pixels per inch (OK, it really should be ppi)
 # * device: string with name of output device. Only "pdf" is supported now.
-save_vtest <- function(desc = NULL, filename = NULL, width = 4, height = 4,
-                       dpi = 72, device = "pdf") {
-  require(digest)
+
+#' @export
+save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "pdf") {
   if (is.null(get_vcontext()))     stop("Must have active vcontext")
   if (is.null(desc) || desc == "") stop("desc must not be empty")
 
   if (device == "pdf")  dpi <- NA
   else                  stop('Only "pdf" device supported at this time')
 
-  deschash <- digest(desc)
-
   err <- "ok"  # Use this to track if there's a warning or error when using ggsave
 
   # Save the pdf to a temporary file
-  temppdf <- tempfile("vtest", fileext = ".pdf")
+  temppdf <- tempfile("vtest")
   tryCatch({ ggsave(temppdf, width = width, height = height, dpi = dpi,
                device = match.fun(device), compress = FALSE) },
            warning = function(w) { err <<- "warn"; warning(w) },
            error   = function(e) { err <<- "error"; warning(e) })
 
+  # Zero out the dates and write modified PDF file to the output dir
+  cleanpdf <- tempfile("vtest_cleaned")
+  zero_pdf_date(temppdf, cleanpdf)
 
-  # Zero out the dates and write modified PDF file to the final destination
-  # Use deschash for the filename
-  outfile <- file.path(get_vtest_path(), get_vcontext(),
-                      paste(deschash, device, sep="."))
-  zero_pdf_date(temppdf, outfile)
-
-  unlink(temppdf)  # Remove temp file
+  unlink(temppdf)  # Remove the file in the temp dir
 
   # Get a hash of the file contents
-  filehash <- digest(outfile, file = TRUE)
+  filehash <- digest(cleanpdf, file = TRUE)
+  file.rename(cleanpdf, file.path(get_vtest_path(), get_vcontext(), filehash))
 
   # Append the info for this test in the vis_info list
-  append_vtestinfo(data.frame(filename = basename(outfile), desc = desc,
-    deschash = deschash, type = device, width = width, height = height, dpi = dpi,
-    err = err, filehash = filehash, stringsAsFactors = FALSE))
+  append_vtestinfo(data.frame(desc = desc,
+    type = device, width = width, height = height, dpi = dpi,
+    err = err, hash = filehash, stringsAsFactors = FALSE))
 
   message(".", appendLF = FALSE)
 }
@@ -158,6 +157,7 @@ save_vtest <- function(desc = NULL, filename = NULL, width = 4, height = 4,
 # This is the function that the user calls
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 # TODO: Create overall index file?
+#' @export
 vtest_webpage <- function(pkg = NULL, filter = "", convertpng = TRUE) {
   pkg <- as.package(pkg)
 
@@ -255,6 +255,7 @@ make_vtest_webpage <- function(dir = NULL, outdir = NULL, convertpng = TRUE) {
 # If ref2 is "" (the working tree), then we don't know exactly which of the new files
 # the user plans to commit. So we just assume all new files in the working tree are
 # added files (marked with A).
+#' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
 
@@ -307,6 +308,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", showhel
 
 # Make visual diff from two refs
 # TODO: Create overall index file, with status
+#' @export
 vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
       convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
   # TODO: message about weird color space in conversion using convert
