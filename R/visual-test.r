@@ -15,6 +15,8 @@ local({
   pkg <- NULL      # The package object
   testpath <- NULL # The path to the test (usually package/visual_test/)
   outdir <- NULL   # Where the output files are saved
+  commit <- NULL   # The current commit hash of the package
+  git_clean <- NULL# Is the package's working tree clean?
 
   context <- NULL  # The context of a set of tests (usually in one script)
   testinfo <- NULL # Information about each test in a context
@@ -26,6 +28,10 @@ local({
   get_vtest_path <<- function() testpath
   set_vtest_outdir <<- function (value) outdir <<- value
   get_vtest_outdir <<- function() outdir
+  set_vtest_commit <<- function (value) commit <<- value
+  get_vtest_commit <<- function() commit
+  set_vtest_git_clean <<- function (value) git_clean <<- value
+  get_vtest_git_clean <<- function() git_clean
 
   # These are used by each test script
   get_vcontext <<- function() context
@@ -60,6 +66,10 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
     return()
 
   set_vtest_path(test_path)
+
+  set_vtest_commit(git_find_commit_hash(pkg$path))
+  set_vtest_git_clean(git_check_clean(pkg$path))
+
 
   if (is.null(outdir)) {
     # Default output directory would be ggplot2/../ggplot2-vtest
@@ -735,4 +745,15 @@ systemCall <- function(commands, args = character(), stdin = "", input = NULL,
   if (!is.null(rundir))  setwd(startdir)
 
   return(list(status = status, output = output))
+}
+
+# Find the current git commit hash of a directory (must be top level of repo)
+git_find_commit_hash <- function(dir = ".") {
+  ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", "HEAD"))
+  ret$output <- gsub("\\n$", "", ret$output)  # Remove trailing \n
+
+  if (ret$status == 0  && nchar(ret$output) == 40)
+    return(ret$output)
+  else
+    stop("Error finding current git commit hash of repo at ", dir, ":", ret$output)
 }
