@@ -293,7 +293,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", showhel
       "  (All new files are reported as Added.)")
 
   gitstat <- systemCall("git", c("diff", "--name-status", ref1, ref2),
-                        stdout = TRUE, stderr = TRUE, rundir = pkg$path)
+                        rundir = pkg$path)
 
   if (gitstat$status != 0) {
     # Git failed to run for some reason. it would be nice to print the output,
@@ -316,7 +316,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", showhel
   # files over.
   if (ref2 == "") {
     wfiles <- systemCall("git", c("ls-files", "--other", "--exclude-standard", "visual_test/"),
-              stdout = TRUE, stderr = TRUE, rundir = pkg$path)
+                rundir = pkg$path)
 
     if (length(wfiles) > 0)
       changed <- rbind(changed, data.frame(status = "A", filename = wfiles$output,
@@ -351,7 +351,7 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
 
   # Check we're in top level of the repo
   if (pkg$path != systemCall("git", c("rev-parse", "--show-toplevel"),
-                    stdout = TRUE, stderr = TRUE, rundir = pkg$path)$output)
+                    rundir = pkg$path)$output)
     stop("The path of pkg must also be the top level of the git tree.")
 
   if (prompt) {
@@ -667,7 +667,7 @@ checkout_worktree <- function(ref = "", outdir = NULL, paths = "", pkgpath = NUL
                    rundir = pkgpath)$status != 0)
       stop("git checkout failed.")
     # Need to reset git index status after the checkout (so git doesn't get confused)
-    systemCall("git", c("reset", "--mixed"), stdout = TRUE, rundir = pkgpath)
+    systemCall("git", c("reset", "--mixed"), rundir = pkgpath)
   }
 }
 
@@ -703,12 +703,11 @@ relativePath <- function(path, start = NULL) {
 # Supposedly in the next version of R, system2 will return this information.
 # This function also will go to `rundir` before running the command, then return
 # to the starting dir.
-# Note, this doesn't capture the output correctly if there's an error return value,
-# in contrast to what's said here:
+# There are some tricks used to capture the stdout+stderr.
+# I tried this but it didn't work:
 # http://stackoverflow.com/questions/7014081/capture-both-exit-status-and-output-from-a-system-call-in-r
-systemCall <- function(commands, args = character(),
-             stdout = "", stderr = "", stdin = "", input = NULL,
-             env = character(), wait = TRUE, rundir = NULL) {
+systemCall <- function(commands, args = character(), stdin = "", input = NULL,
+                env = character(), wait = TRUE, rundir = NULL) {
   output <- ""  # Need to set variable in case there's no output
   status <- 0
   warn <- NULL
@@ -719,15 +718,18 @@ systemCall <- function(commands, args = character(),
     setwd(rundir)
   }
 
-  out <- tryCatch(
-    output <- system2(commands, args, stdout, stderr, stdin, input, env, wait),
-    warning = function(w) {warn <<- w})
+  # For some reason we need to save the stdout/stderr to a file to properly
+  # capture it. (The stackoverflow answer doesn't work for me)
+  tempfile <- tempfile("systemCall")
 
-  # This should get the exit code from the warning string
-  if (!is.null(warn)) {
-    status <- sub( ".*status (\\d+)$", "\\1", warn$message)
-    status <- as.integer(status)
-  }
+  status <- system2(commands, args, stdout = tempfile, stderr = tempfile,
+                    stdin, input, env, wait)
+
+  # Read in the output from stdin/stderr
+  tempfile_fd <- file(tempfile, "r")
+  output <- readChar(tempfile_fd, 1048576)  # Max 1MB from stdout/stderr
+  close(tempfile_fd)
+  unlink(tempfile_fd)
 
   # Return to the starting directory
   if (!is.null(rundir))  setwd(startdir)
