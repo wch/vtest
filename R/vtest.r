@@ -20,8 +20,9 @@ local({
   resultdir <- NULL # Where the database files are saved
   imagedir <- NULL  # Where the image files are saved
 
-  context <- NULL  # The context of a set of tests (usually in one script)
-  testinfo <- NULL # Information about each test in a context
+  context <- NULL   # The context of a set of tests (usually in one script)
+  context_count <- NULL # Keep count of tests, within this context
+  testinfo <- NULL  # Information about each test in a context
 
   # These are used by the top-level vtest function
   set_vtest_pkg <<- function(value) pkg <<- value
@@ -37,6 +38,7 @@ local({
   get_vcontext <<- function() context
   set_vcontext <<- function(value) {
     context <<- value
+    context_count <<- 0
   }
 
   # Create a zero-row data frame to hold testinfo
@@ -55,10 +57,12 @@ local({
     if (sum(context == testinfo$context & desc == testinfo$desc) != 0)
       stop(contest, ":\"", desc, "\" cannot be added to vtestinfo because it is already present.")
 
+    context_count <<- context_count + 1
+
     testinfo <<- rbind(testinfo,
       data.frame(context = context, desc = desc, type = type, width = width,
         height = height, dpi = dpi, err = err, hash = hash,
-        order = nrow(testinfo)+1, stringsAsFactors = FALSE))
+        order = context_count, stringsAsFactors = FALSE))
   }
 
 })
