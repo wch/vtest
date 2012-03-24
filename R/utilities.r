@@ -2,15 +2,19 @@
 # Utility functions
 # =============================================================
 
-# For a character vector x, return the values that have matches in
+# For a character vector x, return the *values* that have matches in
 # character vector 'filter'
 match_filter <- function(x, filter) {
-  # Get indices of 'x' that have matches in 'filter'
-  idx <- unlist(lapply(filter, grep, x))
-  x[unique(idx)]
+  x[match_filter_idx(x, filter)]
 }
 
-
+# For a character vector x, return the *indices* that have matches in
+# character vector 'filter'
+match_filter_idx <- function(x, filter) {
+  # Get indices of 'x' that have matches in 'filter'
+  idx <- unlist(lapply(filter, grep, x))
+  unique(idx)
+}
 
 # For a PDF, modify the CreationDate and ModDate (lines 5 and 6)
 # so that the files are exactly the same, regardless of date + time they

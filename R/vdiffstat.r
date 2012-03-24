@@ -1,55 +1,48 @@
-
 # Find files modified between ref1 and ref2
-# If ref2 is "" (the working tree), then we don't know exactly which of the new files
-# the user plans to commit. So we just assume all new files in the working tree are
-# added files (marked with A).
+# If ref2 is "", we treat it to mean the last test results.
 #' @export
-vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", showhelp = TRUE) {
+vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
+                      resultdir = NULL, showhelp = TRUE) {
   pkg <- as.package(pkg)
 
-  if (ref1 == "")  stop('ref1 must not be blank "" (because git doesn\'t like it)')
+  if (is.null(resultdir))
+    resultdir <- find_default_resultdir()
 
-  ref2text <- ifelse(ref2 == "", "working tree", ref2)
-  message("Comparing ", ref1, " to ", ref2text);
-  if (ref2 == "")
-    message("The status of Added files is a guess when using working tree.\n",
-      "  (All new files are reported as Added.)")
-
-  gitstat <- systemCall("git", c("diff", "--name-status", ref1, ref2),
-                        rundir = pkg$path)
-
-  if (gitstat$status != 0) {
-    # Git failed to run for some reason. it would be nice to print the output,
-    # but we can't because of issues with system2 in systemCall
-    stop("git returned code ", gitstat$status, ". Make sure you use valid git commit refs.")
-  } else if (length(gitstat$output) == 0) {
-    # There were no changes; create an empty data frame
-    changed <- data.frame(V1=character(), V2=character())
+  # Get the testinfo data for ref1 and ref2
+  if (ref1 == "") {
+    ref1text <- "last local test"
+    ref1h <- ""
+    ti1 <- get_lasttestinfo(resultdir = resultdir)
   } else {
-    # There were some changes
-    changed <- read.table(con <- textConnection(gitstat$output), stringsAsFactors = FALSE)
-    close(con)
+    ref1text <- ref1
+    ref1h <- git_find_commit_hash(pkg$path, ref1)
+    ti1 <- get_testinfo(commit = ref1h, resultdir = resultdir)
   }
-  changed <- setNames(changed, c("status", "filename"))
-  changed <- subset(changed, grepl("^visual_test/", filename))
 
-  # Special case where ref2 is the working tree. This is a bit hacky. Add all
-  # the untracked files in the visual_test dir. Because they're not committed, we
-  # can't tell exactly which files *should* be compared. So copy all the untracked
-  # files over.
   if (ref2 == "") {
-    wfiles <- systemCall("git", c("ls-files", "--other", "--exclude-standard", "visual_test/"),
-                rundir = pkg$path)
-
-    if (length(wfiles) > 0)
-      changed <- rbind(changed, data.frame(status = "A", filename = wfiles$output,
-                                           stringsAsFactors = FALSE))
+    ref2text <- "last local test"
+    ref2h <- ""
+    ti2 <- get_lasttestinfo(resultdir = resultdir)
+  } else {
+    ref2text <- ref2
+    ref2h <- git_find_commit_hash(pkg$path, ref2)
+    ti2 <- get_testinfo(commit = ref2h, resultdir = resultdir)
   }
 
-  if (nrow(changed) == 0) return(changed)
+  # Keep just a few columns
+  ti1 <- ti1[c("context", "desc", "hash")]
+  ti2 <- ti2[c("context", "desc", "hash")]
 
-  # use 'filter' on the second part of the path (right after visual_test/)
-  cpaths <- strsplit(changed$filename,"/")
-  changed[grepl(filter, sapply(cpaths, "[[", 2)), ]
+  # Merge together and check for changes
+  td <- merge(ti1, ti2, by=c("context", "desc"), suffixes = c("1", "2"), all = TRUE)
+  td$status <- "U"                                      # Default Unchanged
+  td$status[ is.na(td$hash1) & !is.na(td$hash2)] <- "A" # Added
+  td$status[!is.na(td$hash1) &  is.na(td$hash2)] <- "D" # Deleted
+  td$status[td$hash1 != td$hash2] <- "C"                # Changed
+
+  # Pull out only the rows where context matches the filter
+  td <- td[match_filter_idx(td$context, filter), ]
+
+  # Return td, but without hashes
+  return(td[c("context", "desc", "status")])
 }
-
