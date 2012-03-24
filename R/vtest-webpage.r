@@ -63,8 +63,8 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE
 
   # Write HTML code to show a single test
   item_html <- function(t, convertpng = FALSE) {
-    if (convertpng) f <- paste(t$hash, ".png", sep="")
-    else            f <- paste(t$hash, ".pdf", sep="")
+    if (convertpng) f <- paste(t$hash, "png", sep=".")
+    else            f <- paste(t$hash, t$type , sep=".")
 
     paste('<div class="float">\n',
           '  <div class="header">',

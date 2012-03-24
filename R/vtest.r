@@ -203,8 +203,12 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
     testinfo_all <- data.frame(testinfo_hash = character())
 
   # Get the old results that match the current testinfo hash (if present)
-  testinfo_match <- subset(testinfo_all, testinfo_hash == testinfo_hash,
-                           select = -testinfo_hash)
+  # It would be nice to be able to use:
+  #   subset(testinfo_all, testinfo_hash == testinfo_hash, select = -testinfo_hash)
+  # but this case is very problematic for subset because of re-used var name and
+  # because when there are no matches, subset returns a 1-row NA-filled data frame.
+  testinfo_match <- testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, ]
+  testinfo_match <- testinfo_match[!(names(testinfo_match) %in% "testinfo_hash")]
 
   if (nrow(testinfo_match) > 0 ) {
     message("Existing results found for testinfo hash ", testinfo_hash)
