@@ -70,14 +70,10 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
 
   set_vtest_path(test_path)
 
+  if (is.null(resultdir))
+    resultdir <- find_default_resultdir()
 
-  if (is.null(resultdir)) {
-    # Default output directory would be ggplot2/../ggplot2-vtest
-    p <- strsplit(pkg$path, "/")[[1]]
-    resultdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
-                collapse="/")
-    imagedir <- file.path(resultdir, "images")
-  }
+  imagedir <- file.path(resultdir, "images")
 
   set_vtest_resultdir(resultdir)
   set_vtest_imagedir(imagedir)

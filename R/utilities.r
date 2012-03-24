@@ -218,3 +218,12 @@ git_check_clean <- function(dir = ".") {
     stop("Error checking git working tree clean/dity status of ", dir, ":", ret$output)
   }
 }
+
+
+find_default_resultdir <- function(pkg = NULL) {
+  pkg <- as.package(pkg)
+
+  # Default output directory would be ggplot2/../ggplot2-vtest
+  p <- strsplit(pkg$path, "/")[[1]]
+  paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")), collapse="/")
+}

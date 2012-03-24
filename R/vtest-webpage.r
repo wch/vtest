@@ -12,12 +12,8 @@
 vtest_webpage <- function(pkg = NULL, resultdir = NULL, convertpng = TRUE) {
   pkg <- as.package(pkg)
 
-  if (is.null(resultdir)) {
-    # Default output directory would be ggplot2/../ggplot2-vtest
-    p <- strsplit(pkg$path, "/")[[1]]
-    resultdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
-                collapse="/")
-  }
+  if (is.null(resultdir))
+    resultdir <- find_default_resultdir()
 
   htmldir <- file.path(resultdir, "html")
 
