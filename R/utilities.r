@@ -227,3 +227,29 @@ find_default_resultdir <- function(pkg = NULL) {
   p <- strsplit(pkg$path, "/")[[1]]
   paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")), collapse="/")
 }
+
+
+# Get the testinfo table for a given commit or testinfo_hash
+get_testinfo <- function(commit = NULL, testinfo_hash = NULL, resultdir = NULL) {
+  if (is.null(resultdir))  stop("resultdir must be specified.")
+  if (is.null(commit) && is.null(testinfo_hash))
+    stop("Must specify either commit or testinfo_hash.")
+  else if (!is.null(commit) && !is.null(testinfo_hash))
+    stop("Must specify one of commit or testinfo_hash, not both.")
+
+  testinfo_all <- read.csv(file.path(resultdir, "testinfo.csv"), stringsAsFactors = FALSE)
+
+  if (!is.null(commit)) {
+    commits <- read.csv(file.path(resultdir, "commits.csv"), stringsAsFactors = FALSE)
+    testinfo_hash <- commits$testinfo_hash[commits$commit == commit]
+  }
+
+  return(testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, ])
+}
+
+
+# Get the testinfo table for the last test run
+get_lasttestinfo <- function(resultdir = NULL) {
+  if (is.null(resultdir))  stop("resultdir must be specified.")
+  return(read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE))
+}
