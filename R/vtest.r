@@ -95,9 +95,8 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
       return(invisible())
 
     dir.create(resultdir, recursive = TRUE, showWarnings = FALSE)
-  }
-
-  if (!file.exists(imagedir)) {
+    dir.create(imagedir, recursive = TRUE, showWarnings = FALSE)
+  } else if (!file.exists(imagedir)) {
     resp <- readline(paste(imagedir, "does not exist! Create? (y/n) "))
     if (tolower(resp) != "y")
       return(invisible())
@@ -218,10 +217,10 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
   #   subset(testinfo_all, testinfo_hash == testinfo_hash, select = -testinfo_hash)
   # but this case is very problematic for subset because of re-used var name and
   # because when there are no matches, subset returns a 1-row NA-filled data frame.
-  testinfo_match <- testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, ]
+  testinfo_match <- testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, , drop = FALSE]
   testinfo_match <- testinfo_match[!(names(testinfo_match) %in% "testinfo_hash")]
 
-  if (nrow(testinfo_match) > 0 ) {
+  if (nrow(testinfo_match) > 0) {
     message("Existing results found for testinfo hash ", testinfo_hash)
     message("Checking existing result hash just to make sure... ", appendLF = FALSE)
     testinfo_match_hash <- hash_testinfo(testinfo_match)
