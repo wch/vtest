@@ -193,8 +193,8 @@ systemCall <- function(commands, args = character(), stdin = "", input = NULL,
 }
 
 # Find the current git commit hash of a directory (must be top level of repo)
-git_find_commit_hash <- function(dir = ".") {
-  ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", "HEAD"))
+git_find_commit_hash <- function(dir = ".", ref = "HEAD") {
+  ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", ref))
   ret$output <- gsub("\\n$", "", ret$output)  # Remove trailing \n
 
   if (ret$status == 0  && nchar(ret$output) == 40)
