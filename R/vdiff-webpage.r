@@ -55,7 +55,7 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 
   vdiff <- vdiff[vdiff$context == context, ]
 
-  htmlfile <- file.path(normalizePath(diffdir), "index.html")
+  htmlfile <- file.path(normalizePath(diffdir), paste(context, ".html", sep = ""))
   message("Writing ", htmlfile)
 
   # Write HTML code to show a single test
@@ -66,12 +66,11 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
     if (convertpng) {
       f1 <- paste(t$hash1, ".png", sep = "")
       f2 <- paste(t$hash2, ".png", sep = "")
-      fd <- paste(fd,      ".png", sep = "")
     } else {
       f1 <- paste(t$hash1, ".pdf", sep = "")
       f2 <- paste(t$hash2, ".pdf", sep = "")
-      fd <- paste(fd,      ".pdf", sep = "")
     }
+    fd <- paste(fd,      ".png", sep = "")   # Diff images are always png
 
     if (t$status == "D") {           # Deleted file
       status <- "changed"
@@ -149,7 +148,7 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 
   } else {
     # Convert only those images that changed (and require diff images)
-    convertfiles <- unique(c(changed$hash1, vdiff$hash2))
+    convertfiles <- unique(c(changed$hash1, changed$hash2))
 
     # Copy over the other files (to display as PDF)
     allhashes <- unique(c(vdiff$hash1, vdiff$hash2))
@@ -161,9 +160,11 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 
   convert_png(convertfiles, imagedir, diffdir, method = method)
 
-  compare_png(
-    file.path(diffdir, paste(changed$hash1, ".png", sep="")),
-    file.path(diffdir, paste(changed$hash2, ".png", sep="")),
-    file.path(diffdir, paste(changed$hash1, "-", changed$hash2, ".png", sep="")))
+  if(nrow(changed) > 0) {
+    compare_png(
+      file.path(diffdir, paste(changed$hash1, ".png", sep="")),
+      file.path(diffdir, paste(changed$hash2, ".png", sep="")),
+      file.path(diffdir, paste(changed$hash1, "-", changed$hash2, ".png", sep="")))
+  }
 
 }
