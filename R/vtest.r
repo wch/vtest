@@ -207,20 +207,6 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
 }
 
 
-hash_testinfo <- function(t) {
-  # Reset the row names so it hashes like the original
-  rownames(t) <- NULL
-  # Sort by context and then order
-  t <- arrange(t, context, order)
-
-  # Make sure number columns are treated as num instead of int (for consistent hashing)
-  numcols <- sapply(t, is.numeric)
-  t[numcols] <- lapply(t[numcols], as.numeric)
-
-  digest(t)
-}
-
-
 # Start a visual test context
 #' @export
 vcontext <- function(context) {
@@ -292,3 +278,19 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   message(".", appendLF = FALSE)
 }
+
+
+# Get a hash of a testinfo table
+hash_testinfo <- function(t) {
+  # Reset the row names so it hashes like the original
+  rownames(t) <- NULL
+  # Sort by context and then order
+  t <- arrange(t, context, order)
+
+  # Make sure number columns are treated as num instead of int (for consistent hashing)
+  numcols <- sapply(t, is.numeric)
+  t[numcols] <- lapply(t[numcols], as.numeric)
+
+  digest(t)
+}
+
