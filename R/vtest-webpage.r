@@ -6,10 +6,9 @@
 # * outdir: the output directory
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 # TODO: Create overall index file
-# TODO: Allow user to specify commit
 # TODO: Add filter?
 #' @export
-vtest_webpage <- function(pkg = NULL, resultdir = NULL, convertpng = TRUE) {
+vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, convertpng = TRUE) {
   pkg <- as.package(pkg)
 
   if (is.null(resultdir))
@@ -22,23 +21,30 @@ vtest_webpage <- function(pkg = NULL, resultdir = NULL, convertpng = TRUE) {
   else
     unlink(dir(htmldir, full.names = TRUE))
 
-  testinfo <- read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE)
+  if (ref == "") {
+    reftext <- "last local test"
+    testinfo <- read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE)
+  } else {
+    reftext <- ref
+    refh <- git_find_commit_hash(pkg$path, ref)
+    testinfo <- get_testinfo(commit = refh, resultdir = resultdir)
+  }
 
-  make_vtest_indexpage(testinfo, resultdir)
+  make_vtest_indexpage(testinfo, resultdir, reftext)
 
   ddply(testinfo, .(context), .fun = function(ti) {
-      make_vtest_contextpage(ti, resultdir, convertpng)
+      make_vtest_contextpage(ti, resultdir, reftext, convertpng)
   })
 
   invisible()
 }
 
-make_vtest_indexpage <- function(testinfo, resultdir = NULL) {
+make_vtest_indexpage <- function(testinfo, resultdir = NULL, reftext = "") {
   print(unique(testinfo$context))
 }
 
 
-make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE)  {
+make_vtest_contextpage <- function(testinfo, resultdir = NULL, reftext = "", convertpng = TRUE)  {
   if (is.null(resultdir))  stop("resultdir cannot be NULL")
 
   # Sort by order
@@ -54,10 +60,12 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE
   message("Writing ", htmlfile)
 
   write(paste('<html><head>\n',
-              '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
-              '<title>Visual tests: ', context,
-              '</title></head><body><h1>Visual tests: ', context,
-              '</h1>\n', sep = ""), htmlfile)
+        '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
+        '<title>Visual tests: ', context,
+        '</title></head><body><h1>Visual tests: ', context,
+        '</h1>\n',
+        '<h2>Results for <span class="refspec">', reftext,'</span></h2>\n',
+        sep = ""), htmlfile)
 
   # Write HTML code to show a single test
   item_html <- function(t, convertpng = FALSE) {
