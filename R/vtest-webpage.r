@@ -6,9 +6,9 @@
 # * outdir: the output directory
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 # TODO: Create overall index file
-# TODO: Add filter?
 #' @export
-vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, convertpng = TRUE) {
+vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
+    convertpng = TRUE) {
   pkg <- as.package(pkg)
 
   if (is.null(resultdir))
@@ -29,6 +29,9 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, convertpng = T
     refh <- git_find_commit_hash(pkg$path, ref)
     testinfo <- get_testinfo(commit = refh, resultdir = resultdir)
   }
+
+  # Filter results
+  testinfo <- testinfo[match_filter_idx(testinfo$context, filter), ]
 
   make_vtest_indexpage(testinfo, resultdir, reftext)
 
