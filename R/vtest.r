@@ -39,18 +39,26 @@ local({
     context <<- value
   }
 
-  # TODO: Get rid of this...
-  init_vtestinfo <<- function() testinfo <<- data.frame()
+  # Create a zero-row data frame to hold testinfo
+  init_vtestinfo <<- function() {
+    cols <- c("context", "desc", "type", "width", "height", "dpi", "err",
+              "hash", "order")
+    testinfo <<- setNames(data.frame(t(rep(NA, length(cols)))), cols)
+    testinfo <<- testinfo[-1, ]
+  }
 
   get_vtestinfo <<- function() testinfo
 
   # Add information about a single test
-  append_vtestinfo <<- function(value) {
+  append_vtestinfo <<- function(context, desc, type, width, height, dpi, err, hash, order) {
     # Check that context + description aren't already used
-    if (sum(value$context == testinfo$context & value$desc == testinfo$desc) != 0)
-      stop(value$contest, ":\"", value$desc, "\" cannot be added because it is already present.")
+    if (sum(context == testinfo$context & desc == testinfo$desc) != 0)
+      stop(contest, ":\"", desc, "\" cannot be added to vtestinfo because it is already present.")
 
-    testinfo <<- rbind(testinfo, cbind(value, data.frame(order = nrow(testinfo)+1)))
+    testinfo <<- rbind(testinfo,
+      data.frame(context = context, desc = desc, type = type, width = width,
+        height = height, dpi = dpi, err = err, hash = hash,
+        order = nrow(testinfo)+1, stringsAsFactors = FALSE))
   }
 
 })
@@ -58,7 +66,7 @@ local({
 
 # Run visual tests
 #' @export
-vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) {
+vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
 
@@ -304,9 +312,9 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
     file.rename(cleanpdf, file.path(get_vtest_imagedir(), filehash))
 
   # Append the info for this test in the vis_info list
-  append_vtestinfo(data.frame(context = get_vcontext(), desc = desc,
+  append_vtestinfo(context = get_vcontext(), desc = desc,
     type = device, width = width, height = height, dpi = dpi,
-    err = err, hash = filehash, stringsAsFactors = FALSE))
+    err = err, hash = filehash)
 
   message(".", appendLF = FALSE)
 }
