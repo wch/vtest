@@ -67,10 +67,11 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE
     paste('<div class="float">\n',
           '  <div class="header">',
           '    <p class="description">', t$desc, '</p>\n',
-          '    <p class="hash">', t$hash, '</p>', '</div>\n',
+          '  </div>\n',
           '  <div class="imageset">\n',
           '    <span class="imagewrap">\n',
           '      <div class="image"><img src="', f, '"></div>\n',
+          '      <div class="hash">', t$hash, '</div>\n',
           '    </span>\n',
           '  </div>\n',
           '</div>\n', sep="")
