@@ -41,9 +41,9 @@ local({
 
   # Add information about a single test
   append_vtestinfo <<- function(value) {
-    # Check that description hash isn't already used
-    if (sum(value$deschash == testinfo$deschash) != 0)
-      stop("Hash ", value$deschash, " cannot be added because it is already present.")
+    # Check that context + description aren't already used
+    if (sum(value$context == testinfo$context & value$desc == testinfo$desc) != 0)
+      stop(value$contest, ":\"", value$desc, "\" cannot be added because it is already present.")
 
     testinfo <<- rbind(testinfo, cbind(value, data.frame(order = nrow(testinfo)+1)))
   }
@@ -94,38 +94,41 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   files <- files[grepl("\\.[rR]$", files)]
   lapply(files, source)
 
-  f_quote <- ifelse(is.null(filter), '', paste('filter="', filter, '"', sep = ""))
-  if (showhelp) {
-    message("\nRun vtest_webpage(", f_quote, ") to generate web pages for viewing tests.\n",
-      "Run vdiffstat(", f_quote, ") to see what files have changed.\n",
-      "Run vdiff_webpage(", f_quote,
-      ") to generate web pages comparing results to another commit in the git repository.\n",
-      "If you have added new tests, remember to add the output files to the git repository.\n",
-      "(Hide this message with showhelp=FALSE.)")
-  }
+#  f_quote <- ifelse(is.null(filter), '', paste('filter="', filter, '"', sep = ""))
+#  if (showhelp) {
+#    message("\nRun vtest_webpage(", f_quote, ") to generate web pages for viewing tests.\n",
+#      "Run vdiffstat(", f_quote, ") to see what files have changed.\n",
+#      "Run vdiff_webpage(", f_quote,
+#      ") to generate web pages comparing results to another commit in the git repository.\n",
+#      "If you have added new tests, remember to add the output files to the git repository.\n",
+#      "(Hide this message with showhelp=FALSE.)")
+#  }
 
 
   # ============ Check hash of testset results ===========
 
+  # TODO: Add check that vtest is run on entire set of tests, before writing
 
   # If running the full battery of tests, then we can hash the entire test set
   # and compare it to the test set table
-  testset_hash <- digest(get_vtestinfo())
-  # TODO: Make sure the data frame is always the same before hashing it
-  #  (will unimportant info like rownames alter the hash?)
+  testinfo_hash <- hash_testinfo(get_vtestinfo())
+
   commit <- git_find_commit_hash(pkg$path)
   clean_repo <- git_check_clean(pkg$path)
 
   # Assume that we'll write the commit data; if certain things happen, set to FALSE
   write_commitdata <- TRUE
+  # Assume that we'll write the testinfo data; if certain things happen, set to FALSE
+  write_testinfo <- TRUE
 
-  message("Hash for vtest results is ", testset_hash)
+  message("Hash for vtest results is ", testinfo_hash)
   message(pkg$package, " is at commit ", commit)
   if (clean_repo) {
-    message("Working tree state is clean, so results can be added to vtest database.")
+    message("Working tree state is clean, so results can be added to database.")
   } else {
-    message("Working tree state is dirty, so results cannot be added to vtest database.")
+    message("Working tree state is dirty, so results cannot be added to database.")
     write_commitdata <- FALSE
+    write_testinfo   <- FALSE
   }
 
   # Read existing commit test results
@@ -137,32 +140,84 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   commitmatch <- commitdata$commit == commit
   if (any(commitmatch)) {
     message("Previous results for commit ", substr(commit, 1, 6), " found: ",
-      paste(commitdata$testset_hash[commitmatch], collapse = ", "))
+      paste(commitdata$testinfo_hash[commitmatch], collapse = ", "))
 
     if (sum(commitmatch) > 1)
       stop("More than one matching commit in database. This indicates a problem with the database.")
 
-    if (commitdata$testset_hash == testset_hash) {
+    if (commitdata$testinfo_hash == testinfo_hash) {
       message("Old and current results match! Good.")
+      write_commitdata <- FALSE
     } else {
       message("Old and current results do not match! This may be because of changes to R, or to other packages.")
       if (write_commitdata) {
         reply <- readline("Replace old test result data with new test result data? (y/n) ")
         if (tolower(reply) != "y")
           write_commitdata <- FALSE
-        else
+        else {
           commitdata <- commitdata[-commitmatch, ]
+          commitdata <- rbind(commitdata, data.frame(commit = commit,
+                                                     testinfo_hash = testinfo_hash))
+        }
       }
     }
+  } else {
+    commitdata <- rbind(commitdata, data.frame(commit = commit,
+                                               testinfo_hash = testinfo_hash))
   }
-
-  commitdata <- rbind(commitdata, data.frame(commit = commit,
-                                             testset_hash = testset_hash))
 
   if (write_commitdata) {
-    message("Writing to result hash to commit database.")
+    message("Writing result hash to commit database.")
     write.csv(commitdata, file.path(outdir, "commits.csv"), row.names = FALSE)
   }
+
+
+  # ============== Add to the results table ======================
+
+  # Read existing test results
+  if (file.exists(file.path(outdir, "testinfo.csv")))
+    testinfo_all <- read.csv(file.path(outdir, "testinfo.csv"), stringsAsFactors = FALSE)
+  else
+    testinfo_all <- data.frame(testinfo_hash = character())
+
+  # Get the old results that match the current testinfo hash (if present)
+  testinfo_match <- subset(testinfo_all, testinfo_hash == testinfo_hash,
+                           select = -testinfo_hash)
+
+  if (nrow(testinfo_match) > 0 ) {
+    message("Existing results found for testinfo hash ", testinfo_hash)
+    message("Checking existing result hash just to make sure... ", appendLF = FALSE)
+    testinfo_match_hash <- hash_testinfo(testinfo_match)
+    if (testinfo_match_hash != testinfo_hash)
+      stop("Re-hashing old testinfo results in a different hash value: ",
+           testinfo_match_hash,
+           "\nThis indicates a problem with the testinfo database.")
+
+    message("Hash matches!")
+    message("No need to add new testinfo to database.")
+  } else {
+    message("No existing results found for testinfo hash ", testinfo_hash)
+    if (write_testinfo) {
+      message("Adding new testinfo to database.")
+
+      testinfo_all <- rbind(testinfo_all, cbind(testinfo_hash, get_vtestinfo()))
+      write.csv(testinfo_all, file.path(outdir, "testinfo.csv"), row.names = FALSE)
+    }
+  }
+}
+
+
+hash_testinfo <- function(t) {
+  # Reset the row names so it hashes like the original
+  rownames(t) <- NULL
+  # Sort by context and then order
+  t <- arrange(t, context, order)
+
+  # Make sure number columns are treated as num instead of int (for consistent hashing)
+  numcols <- sapply(t, is.numeric)
+  t[numcols] <- lapply(t[numcols], as.numeric)
+
+  digest(t)
 }
 
 
