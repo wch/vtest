@@ -164,6 +164,12 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   } else {
     commitdata <- rbind(commitdata, data.frame(commit = commit,
                                                testinfo_hash = testinfo_hash))
+
+    reply <- readline("Results are new. Would you like to add them to the database? (y/n) ")
+    if (tolower(reply) != "y") {
+      write_commitdata <- FALSE
+      write_testinfo <- FALSE
+    }
   }
 
   if (write_commitdata) {
@@ -172,7 +178,7 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   }
 
 
-  # ============== Add to the results table ======================
+  # ============== Add to the testinfo table ======================
 
   # Read existing test results
   if (file.exists(file.path(outdir, "testinfo.csv")))
@@ -244,6 +250,8 @@ end_vcontext <- function() {
 # * height: height in inches
 # * dpi: pixels per inch (OK, it really should be ppi)
 # * device: string with name of output device. Only "pdf" is supported now.
+# * err: error status. ok, warn, or error
+# * hash: a hash of the file contents
 #' @export
 save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "pdf") {
   if (is.null(get_vcontext()))     stop("Must have active vcontext")
@@ -269,7 +277,8 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Get a hash of the file contents
   filehash <- digest(cleanpdf, file = TRUE)
-  file.rename(cleanpdf, file.path(get_vtest_outdir(), filehash))
+  if (!file.exists(file.path(get_vtest_outdir(), filehash)))
+    file.rename(cleanpdf, file.path(get_vtest_outdir(), filehash))
 
   # Append the info for this test in the vis_info list
   append_vtestinfo(data.frame(context = get_vcontext(), desc = desc,
