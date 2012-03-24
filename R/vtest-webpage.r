@@ -5,7 +5,6 @@
 # This is the function that the user calls
 # * outdir: the output directory
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
-# TODO: Create overall index file
 #' @export
 vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
     convertpng = TRUE) {
@@ -43,7 +42,31 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 }
 
 make_vtest_indexpage <- function(testinfo, resultdir = NULL, reftext = "") {
-  print(unique(testinfo$context))
+
+  # Get context
+  contexts <- unique(testinfo$context)
+
+  htmlfile <- file.path(normalizePath(file.path(resultdir, "html")),
+                        paste("index.html", sep="."))
+  message("Writing ", htmlfile)
+  write(paste('<html><head>\n',
+        '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
+        '<title>Visual tests',
+        '</title></head><body><h1>Visual tests',
+        '</h1>\n',
+        '<ul class="contextlist">\n',
+        sep = ""), htmlfile)
+
+  # Write HTML code for a single context
+  item_html <- function(context) {
+    paste('  <li class="context"><a href="', context, '.html">', context, '</a></li>\n', sep = "")
+  }
+
+  # Get the list of info about all tests, then write information about each of the items
+  write(sapply(contexts, item_html), htmlfile, append = TRUE)
+
+  write('</ul></body></html>', htmlfile, append = TRUE)
+
 }
 
 
