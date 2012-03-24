@@ -2,7 +2,7 @@
 # If ref2 is "", we treat it to mean the last test results.
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
-                      resultdir = NULL, showhelp = TRUE) {
+                      resultdir = NULL) {
   pkg <- as.package(pkg)
 
   if (is.null(resultdir))
@@ -30,8 +30,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   }
 
   # Keep just a few columns
-  ti1 <- ti1[c("context", "desc", "hash")]
-  ti2 <- ti2[c("context", "desc", "hash")]
+  ti1 <- ti1[c("context", "desc", "order", "hash")]
+  ti2 <- ti2[c("context", "desc", "order", "hash")]
 
   # Merge together and check for changes
   td <- merge(ti1, ti2, by=c("context", "desc"), suffixes = c("1", "2"), all = TRUE)
@@ -40,9 +40,14 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   td$status[!is.na(td$hash1) &  is.na(td$hash2)] <- "D" # Deleted
   td$status[td$hash1 != td$hash2] <- "C"                # Changed
 
+  # Sort by order in ref1, then ref2
+  td <- arrange(td, order1, order2)
+
+  # Change order of columns to be prettier
+  td <- td[c("context", "desc", "status", "hash1", "hash2", "order1", "order2")]
+
   # Pull out only the rows where context matches the filter
   td <- td[match_filter_idx(td$context, filter), ]
 
-  # Return td, but without hashes
-  return(td[c("context", "desc", "status")])
+  return(td)
 }
