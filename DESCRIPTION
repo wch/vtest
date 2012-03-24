@@ -12,4 +12,8 @@ Imports:
     digest
 License: MIT
 Collate:
-    'visual-test.r'
+    'utilities.r'
+    'vdiff-webpage.r'
+    'vdiffstat.r'
+    'vtest-webpage.r'
+    'vtest.r'
