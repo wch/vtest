@@ -255,10 +255,6 @@ vcontext <- function(context) {
 
   set_vcontext(context)
   message(context, appendLF = FALSE)
-
-  destdir <- file.path(get_vtest_path(), context)
-  unlink(dir(destdir, full.names = TRUE))
-  dir.create(destdir, showWarnings = FALSE)
 }
 
 
