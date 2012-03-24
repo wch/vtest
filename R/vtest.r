@@ -103,9 +103,12 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
   init_vtestinfo()
 
   # Run the test scripts
-  files <- dir(test_path, filter, full.names = TRUE, include.dirs = FALSE)
+  files <- dir(test_path, full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
+  files <- match_filter(files, filter)
+  files <- files[order(files)]
   lapply(files, source)
+
 
 #  f_quote <- ifelse(is.null(filter), '', paste('filter="', filter, '"', sep = ""))
 #  if (showhelp) {
@@ -220,7 +223,7 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
       message("Adding new testinfo to database.")
 
       testinfo_all <- rbind(testinfo_all, cbind(testinfo_hash, get_vtestinfo()))
-      write.csv(testinfo_all, file.path(outdir, "testinfo.csv"), row.names = FALSE)
+      write.csv(testinfo_all, file.path(resultdir, "testinfo.csv"), row.names = FALSE)
     }
   }
 }
