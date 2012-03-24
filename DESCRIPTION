@@ -9,7 +9,8 @@ Depends:
 Imports:
     devtools,
     ggplot2,
-    digest
+    digest,
+    plyr
 License: MIT
 Collate:
     'utilities.r'
