@@ -27,16 +27,16 @@ zero_pdf_date <- function(infile = NULL, outfile = NULL) {
 
 
 # Generate the PNG images for a directory
-convert_pdf2png <- function(filenames, indir = NULL, outdir = NULL, method = "ghostscript") {
+convert_png <- function(filenames, indir = NULL, outdir = NULL, method = "ghostscript") {
   if (length(filenames) == 0) return()
-  infiles <- filenames[grepl("\\.pdf$", filenames)]  # Keep the .pdf files only
-  outfiles <- sub("\\.pdf$", ".png", infiles)
+  infiles <- unique(filenames)  # Remove duplicates
+  outfiles <- paste(infiles, ".png", sep="")
 
   # Prepend paths if specified; otherwise assume that 'filenames' has a full path
   if (!is.null(indir))   infiles  <- file.path(indir, infiles)
   if (!is.null(outdir))  outfiles <- file.path(outdir, outfiles)
 
-  message("Converting ", length(infiles), " PDF files to PNG, using method ", method)
+  message("Converting ", length(infiles), " files to PNG, using method ", method)
 
   # Convert multiple PNGs by building a command string like this:
   # convert \( a.pdf -write a.png +delete \) \( b.pdf -write b.png +delete \) null:

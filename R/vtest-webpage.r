@@ -3,68 +3,68 @@
 # =============================================================
 
 # This is the function that the user calls
+# * outdir: the output directory
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
-# TODO: Create overall index file?
+# TODO: Create overall index file
+# TODO: Allow user to specify commit
+# TODO: Add filter?
 #' @export
-vtest_webpage <- function(pkg = NULL, filter = "", convertpng = TRUE) {
+vtest_webpage <- function(pkg = NULL, resultdir = NULL, convertpng = TRUE) {
   pkg <- as.package(pkg)
 
-  test_path <- file.path(pkg$path, "visual_test")
-  if (!file.exists(test_path))
-    return()
-
-  # Find subdirs with testinfo.dat - these are where html files will be made
-  dirs <- dirname(list.files(test_path, pattern = "testinfo.dat",
-                             recursive = TRUE))
-
-  dirs <- dirs[grepl(filter, dirs)]
-  dirs <- dirs[!grepl("^diff/", dirs)]  # Ignore diff dir
-  dirs <- dirs[!grepl("^html/", dirs)]  # Ignore html dir
-
-  for(d in dirs) {
-    make_vtest_webpage(file.path(test_path, d),
-      outdir = file.path(test_path, "html", d), convertpng = convertpng)
+  if (is.null(resultdir)) {
+    # Default output directory would be ggplot2/../ggplot2-vtest
+    p <- strsplit(pkg$path, "/")[[1]]
+    resultdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
+                collapse="/")
   }
 
-  # Copy the css file
-  file.copy(file.path(test_path, "style.css"), file.path(test_path, "html"),
-            overwrite = TRUE)
+  htmldir <- file.path(resultdir, "html")
+
+  if (!file.exists(htmldir))
+    dir.create(htmldir, recursive = TRUE)
+  else
+    unlink(dir(htmldir, full.names = TRUE))
+
+  make_vtest_indexpage(get_vtestinfo(), resultdir)
+
+  ddply(get_vtestinfo(), .(context), .fun = function(ti) {
+      make_vtest_contextpage(ti, resultdir, convertpng)
+  })
+
   invisible()
 }
 
+make_vtest_indexpage <- function(testinfo, resultdir = NULL) {
+  print(unique(testinfo$context))
+}
 
-# Make a single web page (user shouldn't use this function)
-# TODO: display filename if it differs from hash
-make_vtest_webpage <- function(dir = NULL, outdir = NULL, convertpng = TRUE) {
-  if (is.null(dir))     stop("dir cannot be  NULL")
-  if (is.null(outdir))  stop("outdir cannot be  NULL")
 
-  # Read in the information about the tests
-  testinfo <- dget(file.path(dir, "testinfo.dat"))
+make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE)  {
+  if (is.null(resultdir))  stop("resultdir cannot be NULL")
 
   # Sort by order
   testinfo <- testinfo[order(testinfo$order), ]
 
-  unlink(outdir, recursive= TRUE)
-  dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+  # Get context
+  context <- unique(testinfo$context)
+  if (length(context) != 1)
+    stop("There is not exactly one context in this subset: ", context)
 
-  htmlfile <- file.path(normalizePath(outdir), "index.html")
+  htmlfile <- file.path(normalizePath(file.path(resultdir, "html")),
+                        paste(context, "html", sep="."))
   message("Writing ", htmlfile)
-
-  # Get the name of the subdirectory of visual tests
-  vname <- strsplit(dir, "/")[[1]]
-  vname <- vname[length(vname)]
 
   write(paste('<html><head>\n',
               '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
-              '<title>Visual tests: ', vname,
-              '</title></head><body><h1>Visual tests: ', vname,
+              '<title>Visual tests: ', context,
+              '</title></head><body><h1>Visual tests: ', context,
               '</h1>\n', sep = ""), htmlfile)
 
   # Write HTML code to show a single test
   item_html <- function(t, convertpng = FALSE) {
-    if (convertpng) f <- sub("\\.pdf$", "\\.png", t$filename)
-    else            f <- t$filename
+    if (convertpng) f <- paste(t$hash, ".png", sep="")
+    else            f <- paste(t$hash, ".pdf", sep="")
 
     paste('<div class="float">\n',
           '  <div class="header">',
@@ -85,9 +85,11 @@ make_vtest_webpage <- function(dir = NULL, outdir = NULL, convertpng = TRUE) {
 
   write('</body></html>', htmlfile, append = TRUE)
 
-  if (convertpng)
-    convert_pdf2png(testinfo$filename, dir, outdir)
-  else
-    file.copy(file.path(dir, testinfo$filename), outdir)
-
+  if (convertpng) {
+    convert_png(testinfo$hash, file.path(resultdir, "images"),
+      file.path(resultdir, "html"))
+  } else {
+    file.copy(file.path(resultdir, "images", testinfo$hash),
+      file.path(resultdir, "html", paste(testinfo$hash, ".pdf", sep="")))
+  }
 }
