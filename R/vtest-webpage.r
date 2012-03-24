@@ -26,9 +26,11 @@ vtest_webpage <- function(pkg = NULL, resultdir = NULL, convertpng = TRUE) {
   else
     unlink(dir(htmldir, full.names = TRUE))
 
-  make_vtest_indexpage(get_vtestinfo(), resultdir)
+  testinfo <- read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE)
 
-  ddply(get_vtestinfo(), .(context), .fun = function(ti) {
+  make_vtest_indexpage(testinfo, resultdir)
+
+  ddply(testinfo, .(context), .fun = function(ti) {
       make_vtest_contextpage(ti, resultdir, convertpng)
   })
 
@@ -92,4 +94,6 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, convertpng = TRUE
     file.copy(file.path(resultdir, "images", testinfo$hash),
       file.path(resultdir, "html", paste(testinfo$hash, ".pdf", sep="")))
   }
+
+  return(htmlfile)
 }

@@ -121,13 +121,20 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
 #  }
 
 
-  # ============ Check hash of testset results ===========
-
-  # TODO: Add check that vtest is run on entire set of tests, before writing
+  # ============ Hash testinfo and save to lasttest.csv ===========
 
   # If running the full battery of tests, then we can hash the entire test set
   # and compare it to the test set table
   testinfo_hash <- hash_testinfo(get_vtestinfo())
+
+  # Always save results to lasttest.csv
+  message("Saving test results to lasttest.csv")
+  write.csv(cbind(testinfo_hash, get_vtestinfo()),
+    file.path(resultdir, "lasttest.csv"), row.names = FALSE)
+
+  # TODO: Add check that vtest is run on entire set of tests, before writing (allow a force flag?)
+  # TODO: turn this into function
+  # ============ Check hash of testset results ===========
 
   commit <- git_find_commit_hash(pkg$path)
   clean_repo <- git_check_clean(pkg$path)
@@ -193,7 +200,7 @@ vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) 
     write.csv(commitdata, file.path(resultdir, "commits.csv"), row.names = FALSE)
   }
 
-
+  # TODO: turn this into function
   # ============== Add to the testinfo table ======================
 
   # Read existing test results
