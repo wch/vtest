@@ -28,7 +28,7 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   # TODO: Copy css file?
 
   # Get the changes
-  vdiff <- vdiffstat(ref1, ref2, pkg, filter, resultdir)
+  vdiff <- vdiffstat(ref1, ref2, pkg, filter, resultdir, all = TRUE)
 
 
   if (ref1 == "")  ref1text <- "last local test"

@@ -1,8 +1,10 @@
 # Find files modified between ref1 and ref2
 # If ref2 is "", we treat it to mean the last test results.
+# * showall: if FALSE, don't return Unchanged; if true TRUE, return Unchanged
+#     (in addition to everything else)
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
-                      resultdir = NULL) {
+                      resultdir = NULL, all = FALSE) {
   pkg <- as.package(pkg)
 
   if (is.null(resultdir))
@@ -48,6 +50,9 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
 
   # Pull out only the rows where context matches the filter
   td <- td[match_filter_idx(td$context, filter), ]
+
+  if (!all)
+    td <- td[td$status != "U", ]
 
   return(td)
 }
