@@ -3,8 +3,10 @@ set_vtest_pkg <- NULL
 get_vtest_pkg <- NULL
 set_vtest_path <- NULL
 get_vtest_path <- NULL
-set_vtest_outdir <- NULL
-get_vtest_outdir <- NULL
+set_vtest_resultdir <- NULL
+get_vtest_resultdir <- NULL
+set_vtest_imagedir <- NULL
+get_vtest_imagedir <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
@@ -13,9 +15,10 @@ get_vtestinfo <- NULL
 append_vtestinfo <- NULL
 
 local({
-  pkg <- NULL      # The package object
-  testpath <- NULL # The path to the test (usually package/visual_test/)
-  outdir <- NULL   # Where the output files are saved
+  pkg <- NULL       # The package object
+  testpath <- NULL  # The path to the test (usually package/visual_test/)
+  resultdir <- NULL # Where the database files are saved
+  imagedir <- NULL  # Where the image files are saved
 
   context <- NULL  # The context of a set of tests (usually in one script)
   testinfo <- NULL # Information about each test in a context
@@ -25,8 +28,10 @@ local({
   get_vtest_pkg <<- function() pkg
   set_vtest_path <<- function (value) testpath <<- value
   get_vtest_path <<- function() testpath
-  set_vtest_outdir <<- function (value) outdir <<- value
-  get_vtest_outdir <<- function() outdir
+  set_vtest_resultdir <<- function (value) resultdir <<- value
+  get_vtest_resultdir <<- function() resultdir
+  set_vtest_imagedir <<- function (value) imagedir <<- value
+  get_vtest_imagedir <<- function() imagedir
 
   # These are used by each test script
   get_vcontext <<- function() context
@@ -53,7 +58,7 @@ local({
 
 # Run visual tests
 #' @export
-vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
+vtest <- function(pkg = NULL, filter = NULL, resultdir = NULL, showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
 
@@ -66,26 +71,34 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   set_vtest_path(test_path)
 
 
-  if (is.null(outdir)) {
+  if (is.null(resultdir)) {
     # Default output directory would be ggplot2/../ggplot2-vtest
     p <- strsplit(pkg$path, "/")[[1]]
-    outdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
+    resultdir <- paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")),
                 collapse="/")
+    imagedir <- file.path(resultdir, "images")
   }
 
-  set_vtest_outdir(outdir)
+  set_vtest_resultdir(resultdir)
+  set_vtest_imagedir(imagedir)
 
   if (showhelp)
-    message("Saving output to directory ", outdir)
+    message("Saving test results to directory ", resultdir)
 
-  if (!file.exists(outdir)) {
-    resp <- readline(paste(outdir, "does not exist! Create? (y/n) "))
+  if (!file.exists(resultdir)) {
+    resp <- readline(paste(resultdir, "does not exist! Create? (y/n) "))
     if (tolower(resp) != "y")
       return(invisible())
 
-    dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+    dir.create(resultdir, recursive = TRUE, showWarnings = FALSE)
   }
 
+  if (!file.exists(imagedir)) {
+    resp <- readline(paste(imagedir, "does not exist! Create? (y/n) "))
+    if (tolower(resp) != "y")
+      return(invisible())
+    dir.create(imagedir, recursive = TRUE, showWarnings = FALSE)
+  }
 
   init_vtestinfo()
 
@@ -132,8 +145,8 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
   }
 
   # Read existing commit test results
-  if (file.exists(file.path(outdir, "commits.csv")))
-    commitdata <- read.csv(file.path(outdir, "commits.csv"))
+  if (file.exists(file.path(resultdir, "commits.csv")))
+    commitdata <- read.csv(file.path(resultdir, "commits.csv"))
   else
     commitdata <- data.frame()
 
@@ -174,15 +187,15 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
 
   if (write_commitdata) {
     message("Writing result hash to commit database.")
-    write.csv(commitdata, file.path(outdir, "commits.csv"), row.names = FALSE)
+    write.csv(commitdata, file.path(resultdir, "commits.csv"), row.names = FALSE)
   }
 
 
   # ============== Add to the testinfo table ======================
 
   # Read existing test results
-  if (file.exists(file.path(outdir, "testinfo.csv")))
-    testinfo_all <- read.csv(file.path(outdir, "testinfo.csv"), stringsAsFactors = FALSE)
+  if (file.exists(file.path(resultdir, "testinfo.csv")))
+    testinfo_all <- read.csv(file.path(resultdir, "testinfo.csv"), stringsAsFactors = FALSE)
   else
     testinfo_all <- data.frame(testinfo_hash = character())
 
@@ -277,8 +290,8 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Get a hash of the file contents
   filehash <- digest(cleanpdf, file = TRUE)
-  if (!file.exists(file.path(get_vtest_outdir(), filehash)))
-    file.rename(cleanpdf, file.path(get_vtest_outdir(), filehash))
+  if (!file.exists(file.path(get_vtest_imagedir(), filehash)))
+    file.rename(cleanpdf, file.path(get_vtest_imagedir(), filehash))
 
   # Append the info for this test in the vis_info list
   append_vtestinfo(data.frame(context = get_vcontext(), desc = desc,
