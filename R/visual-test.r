@@ -5,10 +5,6 @@ set_vtest_path <- NULL
 get_vtest_path <- NULL
 set_vtest_outdir <- NULL
 get_vtest_outdir <- NULL
-set_vtest_commit <- NULL
-get_vtest_commit <- NULL
-set_vtest_git_clean <- NULL
-get_vtest_git_clean <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
@@ -20,8 +16,6 @@ local({
   pkg <- NULL      # The package object
   testpath <- NULL # The path to the test (usually package/visual_test/)
   outdir <- NULL   # Where the output files are saved
-  commit <- NULL   # The current commit hash of the package
-  git_clean <- NULL# Is the package's working tree clean?
 
   context <- NULL  # The context of a set of tests (usually in one script)
   testinfo <- NULL # Information about each test in a context
@@ -33,10 +27,6 @@ local({
   get_vtest_path <<- function() testpath
   set_vtest_outdir <<- function (value) outdir <<- value
   get_vtest_outdir <<- function() outdir
-  set_vtest_commit <<- function (value) commit <<- value
-  get_vtest_commit <<- function() commit
-  set_vtest_git_clean <<- function (value) git_clean <<- value
-  get_vtest_git_clean <<- function() git_clean
 
   # These are used by each test script
   get_vcontext <<- function() context
@@ -75,8 +65,6 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
 
   set_vtest_path(test_path)
 
-  set_vtest_commit(git_find_commit_hash(pkg$path))
-  set_vtest_git_clean(git_check_clean(pkg$path))
 
   if (is.null(outdir)) {
     # Default output directory would be ggplot2/../ggplot2-vtest
@@ -114,6 +102,66 @@ vtest <- function(pkg = NULL, filter = NULL, outdir = NULL, showhelp = TRUE) {
       ") to generate web pages comparing results to another commit in the git repository.\n",
       "If you have added new tests, remember to add the output files to the git repository.\n",
       "(Hide this message with showhelp=FALSE.)")
+  }
+
+
+  # ============ Check hash of testset results ===========
+
+
+  # If running the full battery of tests, then we can hash the entire test set
+  # and compare it to the test set table
+  testset_hash <- digest(get_vtestinfo())
+  # TODO: Make sure the data frame is always the same before hashing it
+  #  (will unimportant info like rownames alter the hash?)
+  commit <- git_find_commit_hash(pkg$path)
+  clean_repo <- git_check_clean(pkg$path)
+
+  # Assume that we'll write the commit data; if certain things happen, set to FALSE
+  write_commitdata <- TRUE
+
+  message("Hash for vtest results is ", testset_hash)
+  message(pkg$package, " is at commit ", commit)
+  if (clean_repo) {
+    message("Working tree state is clean, so results can be added to vtest database.")
+  } else {
+    message("Working tree state is dirty, so results cannot be added to vtest database.")
+    write_commitdata <- FALSE
+  }
+
+  # Read existing commit test results
+  if (file.exists(file.path(outdir, "commits.csv")))
+    commitdata <- read.csv(file.path(outdir, "commits.csv"))
+  else
+    commitdata <- data.frame()
+
+  commitmatch <- commitdata$commit == commit
+  if (any(commitmatch)) {
+    message("Previous results for commit ", substr(commit, 1, 6), " found: ",
+      paste(commitdata$testset_hash[commitmatch], collapse = ", "))
+
+    if (sum(commitmatch) > 1)
+      stop("More than one matching commit in database. This indicates a problem with the database.")
+
+    if (commitdata$testset_hash == testset_hash) {
+      message("Old and current results match! Good.")
+    } else {
+      message("Old and current results do not match! This may be because of changes to R, or to other packages.")
+      if (write_commitdata) {
+        reply <- readline("Replace old test result data with new test result data? (y/n) ")
+        if (tolower(reply) != "y")
+          write_commitdata <- FALSE
+        else
+          commitdata <- commitdata[-commitmatch, ]
+      }
+    }
+  }
+
+  commitdata <- rbind(commitdata, data.frame(commit = commit,
+                                             testset_hash = testset_hash))
+
+  if (write_commitdata) {
+    message("Writing to result hash to commit database.")
+    write.csv(commitdata, file.path(outdir, "commits.csv"), row.names = FALSE)
   }
 }
 
