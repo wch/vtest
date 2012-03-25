@@ -107,6 +107,7 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
     dir.create(imagedir, recursive = TRUE, showWarnings = FALSE)
   }
 
+  if (!is.null(get_vcontext()))  end_vcontext()  # Close context if open
   init_vresultset()
 
   # Run the test scripts
