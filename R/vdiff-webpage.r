@@ -128,89 +128,114 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 
   vdiff <- vdiff[vdiff$context == context, ]
 
-  htmlfile <- file.path(normalizePath(diffdir), paste(context, ".html", sep = ""))
-  message("Writing ", htmlfile)
+  item_prep <- function(t, ref1text, ref2text, convertpng) {
 
-  # Write HTML code to show a single test
-  item_html <- function(t, ref1text, ref2text, convertpng) {
-
-    fd <- paste(t$hash1, t$hash2, sep="-")  # Name of diff file
-
-    if (convertpng) {
-      f1 <- paste(t$hash1, ".png", sep = "")
-      f2 <- paste(t$hash2, ".png", sep = "")
-    } else {
-      f1 <- paste(t$hash1, ".pdf", sep = "")
-      f2 <- paste(t$hash2, ".pdf", sep = "")
+    img_link <- function(name) {
+      if (convertpng)  f <- paste(name, ".png", sep = "")
+      else             f <- paste(name, ".pdf", sep = "")
+      paste("<img src=\"", f, "\">", sep = "")
     }
-    fd <- paste(fd,      ".png", sep = "")   # Diff images are always png
 
     if (t$status == "D") {           # Deleted file
       status <- "changed"
-      cell1 <- paste("<img src='", f1 , "'>", sep="")
-      cell2 <- "Not present"
-      celld <- "NA"
+      cell1  <- img_link(t$hash1)
+      cell2  <- "Not present"
+      celld  <- "NA"
     } else if (t$status == "A") {    # Added file
       status <- "changed"
-      cell1 <- "Not present"
-      cell2 <- paste("<img src='", f2, "'>", sep="")
-      celld <- "NA"    
+      cell1  <- "Not present"
+      cell2  <- img_link(t$hash2)
+      celld  <- "NA"
     } else if (t$status == "C") {    # Changed file
       status <- "changed"
-      cell1 <- paste("<img src='", f1, "'>", sep="")
-      cell2 <- paste("<img src='", f2, "'>", sep="")
-      celld <- paste("<img src='", fd, "'>", sep="")
+      cell1  <- img_link(t$hash1)
+      cell2  <- img_link(t$hash2)
+      # Diff file is always png
+      celld  <- paste("<img src=\"", t$hash1, "-", t$hash2, ".png", "\">", sep="") 
     } else if (t$status == "U") {    # Unchanged file
       status <- "unchanged"
-      cell1 <- paste("<img src='", f1, "'>", sep="")
-      cell2 <- cell1
-      celld <- "Identical"
+      cell1  <- img_link(t$hash1)
+      cell2  <- img_link(t$hash2)
+      celld  <- "Identical"
     }
 
-    paste('<div class="float"><div class="', status, '">\n',
-          '  <div class="header">',
-          '    <p class="description">', t$desc, '</p>\n',
-          '  </div>\n',
-          '  <div class="imageset">\n',
-          '    <span class="imagewrap">\n',
-          '      <div><span class="refspec">', ref1text,'</span></div>\n',
-          '      <div class="image">', cell1, '</div>\n',
-          '      <div class="hash">', t$hash1, '</div>\n',
-          '    </span>\n',
-          '    <span class="imagewrap">\n',
-          '      <div><span class="refspec">', ref2text,'</span></div>\n',
-          '      <div class="image">', cell2, '</div>\n',
-          '      <div class="hash">', t$hash2, '</div>\n',
-          '    </span>\n',
-          '    <span class="imagewrap">\n',
-          '      <div>Difference</div>\n',
-          '      <div class="image">', celld, '</div>\n',
-          '    </span>\n',
-          '  </div>\n',
-          '</div></div>\n', sep="")
+    data.frame(ref1text, ref2text, desc = t$desc, status,
+      hash1 = t$hash1, hash2 = t$hash2, cell1, cell2, celld)
   }
 
-  write(paste('<html><head>\n',
-        '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
-        '<title>Visual tests diffs: ', context,
-        '</title></head><body>\n',
-        '<h1>Visual tests diffs: ', context, '</h1>\n',
-        '<h2>Comparing <span class="refspec">', ref1text,
-        '</span> to <span class="refspec">', ref2text,
-        '</span></h2>\n',
-        '<p class="changestatus">', nrow(vdiff), ' tests</p>\n',
-        '<p class="changestatus">', sum(vdiff$status == "C"), ' changed</p>\n',
-        '<p class="changestatus">', sum(vdiff$status == "A"), ' added</p>\n',
-        '<p class="changestatus">', sum(vdiff$status == "D"), ' deleted</p>\n',
-        sep = ""), htmlfile)
 
-  # Write information about all the test items in testinfo
-  for (i in seq_len(nrow(vdiff))) {
-    write(item_html(vdiff[i, ], ref1text, ref2text, convertpng), htmlfile, append = TRUE)
-  }
+template <-
+'<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<title>Visual tests diffs: {{context}}</title>
+</head>
+<body>
+<h1>Visual tests diffs: {{context}}</h1>
+<h2>Comparing <span class="refspec">{{ref1text}}</span> to <span class="refspec">{{ref2text}}</span></h2>
 
-  write("</table></body></html>", htmlfile, append = TRUE)
+<table>
+  <thead><tr>
+    <th>Changed</th>
+    <th>Added</th>
+    <th>Deleted</th>
+    <th>Total tests</th>
+  </tr></thead>
+  <tbody>
+{{#vstat}}
+    <tr>
+      <td class="num">{{C}}</td>
+      <td class="num">{{A}}</td>
+      <td class="num">{{D}}</td>
+      <td class="num">{{Total}}</td>
+    </tr>
+{{/vstat}}
+  </tbody>
+</table>
 
+{{#vditems}}
+{{#value}}
+<div class="float"><div class="{{status}}">
+  <div class="header">
+    <p class="description">{{desc}}</p>
+  </div>
+  <div class="imageset">
+    <span class="imagewrap">
+      <div><span class="refspec">{{ref1text}}</span></div>
+      <div class="image">{{{cell1}}}</div>
+      <div class="hash">{{hash1}}</div>
+    </span>
+    <span class="imagewrap">
+      <div><span class="refspec">{{ref2text}}</span></div>
+      <div class="image">{{{cell2}}}</div>
+      <div class="hash">{{hash2}}</div>
+    </span>
+    <span class="imagewrap">
+      <div>Difference</div>
+      <div class="image">{{{celld}}}</div>
+    </span>
+  </div>
+</div></div>
+{{/value}}
+{{/vditems}}
+
+</body></html>
+'
+
+  vstat <- list(C = sum(vdiff$status == "C"),
+                A = sum(vdiff$status == "A"),
+                D = sum(vdiff$status == "D"),
+                U = sum(vdiff$status == "U"),
+                Total = nrow(vdiff))
+
+  vditems <- lapply(split(vdiff, 1:nrow(vdiff)), item_prep, ref1text, ref2text, convertpng)
+  vditems <- iteratelist(vditems)
+
+  htmlfile <- file.path(normalizePath(diffdir), paste(context, ".html", sep = ""))
+  message("Writing ", htmlfile)
+  write(whisker.render(template), htmlfile)
+
+  # ========= PNG convert and compare ==========
 
   # Get all the rows that changed
   changed <- vdiff[vdiff$status == "C", ]
