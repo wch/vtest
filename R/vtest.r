@@ -8,6 +8,9 @@ get_vtest_imagedir <- NULL
 get_vtest_htmldir <- NULL
 get_vtest_diffdir <- NULL
 
+get_vtest_lasttest_dir <- NULL
+get_vtest_lasttest_resultset_file <- NULL
+
 get_vcontext <- NULL
 set_vcontext <- NULL
 get_vtest_resultset <- NULL
@@ -34,6 +37,9 @@ local({
   get_vtest_imagedir <<- function() file.path(resultdir, "images")
   get_vtest_htmldir  <<- function() file.path(resultdir, "html")
   get_vtest_diffdir  <<- function() file.path(resultdir, "diff")
+
+  get_vtest_lasttest_dir <<- function() file.path(resultdir, "lasttest")
+  get_vtest_lasttest_resultset_file <<- function() file.path(resultdir, "lasttest", "resultset.csv")
 
   # These are used by each test script
   get_vcontext <<- function() context
@@ -110,6 +116,9 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
     dir.create(get_vtest_imagedir(), recursive = TRUE, showWarnings = FALSE)
   }
 
+  if (!file.exists(get_vtest_lasttest_dir()))
+    dir.create(get_vtest_lasttest_dir())
+
 
   # Run the test scripts
   files <- dir(get_vtest_dir(), full.names = TRUE, include.dirs = FALSE)
@@ -129,17 +138,16 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
 #  }
 
 
-  # ============ Hash resultset and save to last_resultset.csv ===========
+  # ============ Hash resultset and save to lasttest/resultset.csv ===========
 
   # If running the full battery of tests, then we can hash the entire test set
   # and compare it to the test set table
   resultset_hash <- hash_resultset(get_vtest_resultset())
 
   # Always save results to last_resultset.csv
-  message("Saving test results to last_resultset.csv")
+  message("Saving result set to lasttest/resultset.csv")
   write.csv(cbind(resultset_hash, get_vtest_resultset()),
-    file.path(get_vtest_resultdir(), "last_resultset.csv"), row.names = FALSE)
-
+            get_vtest_lasttest_resultset_file(), row.names = FALSE)
 
   if (filter == "")
     save_last_resultset()
@@ -189,7 +197,7 @@ save_last_resultset <- function(prompt = TRUE) {
     } else {
       message("For this commit, old and current results do not match! This may be because of changes to R, or to other packages.")
       if (prompt) {
-        reply <- readline("  Replace old results with new results in database? (y/n) ")
+        reply <- readline("  Replace old results with new results in the commit table? (y/n) ")
         if (tolower(reply) != "y")
           return(invisible())
       }
@@ -199,7 +207,7 @@ save_last_resultset <- function(prompt = TRUE) {
     }
   } else {
     if (prompt) {
-      reply <- readline("Results are new. Would you like to add them to the commit table? (y/n) ")
+      reply <- readline("  Results are new. Add them to the commit table? (y/n) ")
       if (tolower(reply) != "y")
         return(invisible())
     }
@@ -256,6 +264,17 @@ save_last_resultset <- function(prompt = TRUE) {
 
   message("Adding new resultset to resultsets table.")
   write.csv(resultsets, get_vtest_resultsets_file(), row.names = FALSE)
+
+  # ============ Copy any new image files over ============
+  lasttest_files <- get_vtest_resultset()$hash
+  lasttest_files <- lasttest_files[!(lasttest_files %in% list.files(get_vtest_imagedir()))]
+
+  if (length(lasttest_files) > 0) {
+    message("Copying ", length(lasttest_files), " new image files to images directory.")
+    file.copy(file.path(get_vtest_lasttest_dir(), lasttest_files),
+              get_vtest_imagedir())
+  }
+  return(invisible())
 }
 
 
@@ -319,8 +338,10 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Get a hash of the file contents
   filehash <- digest(cleanpdf, file = TRUE)
-  if (!file.exists(file.path(get_vtest_imagedir(), filehash)))
-    file.rename(cleanpdf, file.path(get_vtest_imagedir(), filehash))
+
+  # Rename file to hash and move to lasttest_dir
+  if (!file.exists(file.path(get_vtest_lasttest_dir(), filehash)))
+    file.rename(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
 
   # Append the info for this test in the vis_info list
   append_vtest_resultset(context = get_vcontext(), desc = desc,
