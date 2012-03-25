@@ -218,3 +218,18 @@ get_lastresultset <- function(resultdir = NULL) {
   if (is.null(resultdir))  stop("resultdir must be specified.")
   return(read.csv(file.path(resultdir, "last_resultset.csv"), stringsAsFactors = FALSE))
 }
+
+
+# Get a hash of a resultset table
+hash_resultset <- function(t) {
+  # Reset the row names so it hashes like the original
+  rownames(t) <- NULL
+  # Sort by context and then order
+  t <- arrange(t, context, order)
+
+  # Make sure number columns are treated as num instead of int (for consistent hashing)
+  numcols <- sapply(t, is.numeric)
+  t[numcols] <- lapply(t[numcols], as.numeric)
+
+  digest(t)
+}
