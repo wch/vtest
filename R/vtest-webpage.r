@@ -13,7 +13,8 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
   if (is.null(resultdir))
     resultdir <- find_default_resultdir()
 
-  htmldir <- file.path(resultdir, "html")
+  htmldir  <- file.path(resultdir, "html")
+  imagedir <- file.path(resultdir, "images")
 
   if (!file.exists(htmldir))
     dir.create(htmldir, recursive = TRUE)
@@ -32,22 +33,23 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
   # Filter results
   testinfo <- testinfo[match_filter_idx(testinfo$context, filter), ]
 
-  make_vtest_indexpage(testinfo, resultdir, reftext)
+  make_vtest_indexpage(testinfo, htmldir, reftext)
 
   ddply(testinfo, .(context), .fun = function(ti) {
-      make_vtest_contextpage(ti, resultdir, reftext, convertpng)
+      make_vtest_contextpage(ti, htmldir, imagedir, reftext, convertpng)
   })
 
   invisible()
 }
 
-make_vtest_indexpage <- function(testinfo, resultdir = NULL, reftext = "") {
+
+# Makes the overall index web page
+make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 
   # Get context
   contexts <- unique(testinfo$context)
 
-  htmlfile <- file.path(normalizePath(file.path(resultdir, "html")),
-                        paste("index.html", sep="."))
+  htmlfile <- file.path(normalizePath(htmldir), "index.html")
   message("Writing ", htmlfile)
   write(paste('<html><head>\n',
         '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
@@ -70,8 +72,11 @@ make_vtest_indexpage <- function(testinfo, resultdir = NULL, reftext = "") {
 }
 
 
-make_vtest_contextpage <- function(testinfo, resultdir = NULL, reftext = "", convertpng = TRUE)  {
-  if (is.null(resultdir))  stop("resultdir cannot be NULL")
+# Makes the web page for a single context
+make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
+    reftext = "", convertpng = TRUE)  {
+  if (is.null(htmldir))  stop("Need to specify htmldir")
+  if (is.null(imagedir)) stop("Need to specify imagedir")
 
   # Sort by order
   testinfo <- testinfo[order(testinfo$order), ]
@@ -81,8 +86,7 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, reftext = "", con
   if (length(context) != 1)
     stop("There is not exactly one context in this subset: ", context)
 
-  htmlfile <- file.path(normalizePath(file.path(resultdir, "html")),
-                        paste(context, "html", sep="."))
+  htmlfile <- file.path(normalizePath(htmldir), paste(context, "html", sep="."))
   message("Writing ", htmlfile)
 
   write(paste('<html><head>\n',
@@ -119,11 +123,10 @@ make_vtest_contextpage <- function(testinfo, resultdir = NULL, reftext = "", con
   write('</body></html>', htmlfile, append = TRUE)
 
   if (convertpng) {
-    convert_png(testinfo$hash, file.path(resultdir, "images"),
-      file.path(resultdir, "html"))
+    convert_png(testinfo$hash, imagedir, htmldir)
   } else {
-    file.copy(file.path(resultdir, "images", testinfo$hash),
-      file.path(resultdir, "html", paste(testinfo$hash, ".pdf", sep="")))
+    file.copy(file.path(imagedir, testinfo$hash),
+      file.path(htmldir, paste(testinfo$hash, ".pdf", sep="")))
   }
 
   return(htmlfile)
