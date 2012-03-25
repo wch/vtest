@@ -23,20 +23,21 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 
   if (ref == "") {
     reftext <- "last local test"
+    commit <- "NA"
     testinfo <- read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE)
   } else {
     reftext <- ref
-    refh <- git_find_commit_hash(pkg$path, ref)
-    testinfo <- get_testinfo(commit = refh, resultdir = resultdir)
+    commit <- git_find_commit_hash(pkg$path, ref)
+    testinfo <- get_testinfo(commit = commit, resultdir = resultdir)
   }
 
   # Filter results
   testinfo <- testinfo[match_filter_idx(testinfo$context, filter), ]
 
-  make_vtest_indexpage(testinfo, htmldir, reftext)
+  make_vtest_indexpage(testinfo, htmldir, reftext, commit)
 
   ddply(testinfo, .(context), .fun = function(ti) {
-      make_vtest_contextpage(ti, htmldir, imagedir, reftext, convertpng)
+      make_vtest_contextpage(ti, htmldir, imagedir, reftext, commit, convertpng)
   })
 
   invisible()
@@ -44,7 +45,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 
 
 # Makes the overall index web page
-make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
+make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "", commit = "") {
 
   template <- '
 <html><head>
@@ -52,6 +53,8 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 <title>Visual tests</title></head>
 <body>
 <h1>Visual tests</h1>
+<h2>Results for <span class="refspec">{{reftext}}</span></h2>
+<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
 
 <table>
   <thead><tr>
@@ -94,7 +97,7 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 
 # Makes the web page for a single context
 make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
-    reftext = "", convertpng = TRUE)  {
+    reftext = "", commit = "", convertpng = TRUE)  {
   if (is.null(htmldir))  stop("Need to specify htmldir")
   if (is.null(imagedir)) stop("Need to specify imagedir")
 
@@ -116,6 +119,7 @@ make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
 <body>
 <h1>Visual tests: {{context}}</h1>
 <h2>Results for <span class="refspec">{{reftext}}</span></h2>
+<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
 
 {{#vtitems}}
 {{#value}}
