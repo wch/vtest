@@ -56,7 +56,7 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 <table>
   <thead><tr>
     <th>Context</th>
-    <th>Total tests</th>
+    <th>Tests</th>
   </tr></thead>
 {{#vts}}
 {{#value}}
@@ -88,7 +88,7 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 
   htmlfile <- file.path(normalizePath(htmldir), "index.html")
   message("Writing ", htmlfile)
-  write(whisker.render(template), htmlfile, append = TRUE)
+  write(whisker.render(template), htmlfile)
 }
 
 
@@ -109,38 +109,47 @@ make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
   htmlfile <- file.path(normalizePath(htmldir), paste(context, "html", sep="."))
   message("Writing ", htmlfile)
 
-  write(paste('<html><head>\n',
-        '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
-        '<title>Visual tests: ', context,
-        '</title></head><body><h1>Visual tests: ', context,
-        '</h1>\n',
-        '<h2>Results for <span class="refspec">', reftext,'</span></h2>\n',
-        sep = ""), htmlfile)
+  template <- '
+<html><head>
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<title>Visual tests: {{context}}</title></head>
+<body>
+<h1>Visual tests: {{context}}</h1>
+<h2>Results for <span class="refspec">{{reftext}}</span></h2>
 
-  # Write HTML code to show a single test
-  item_html <- function(t, convertpng = FALSE) {
-    if (convertpng) f <- paste(t$hash, "png", sep=".")
-    else            f <- paste(t$hash, t$type , sep=".")
+{{#vtitems}}
+{{#value}}
+<div class="float">
+  <div class="header">
+    <p class="description">{{desc}}</p>
+  </div>
+  <div class="imageset">
+    <span class="imagewrap">
+      <div class="image"><img src="{{file}}"></div>
+      <div class="hash">{{hash}}</div>
+    </span>
+  </div>
+</div>
+{{/value}}
+{{/vtitems}}
 
-    paste('<div class="float">\n',
-          '  <div class="header">',
-          '    <p class="description">', t$desc, '</p>\n',
-          '  </div>\n',
-          '  <div class="imageset">\n',
-          '    <span class="imagewrap">\n',
-          '      <div class="image"><img src="', f, '"></div>\n',
-          '      <div class="hash">', t$hash, '</div>\n',
-          '    </span>\n',
-          '  </div>\n',
-          '</div>\n', sep="")
+</body>
+</html>
+'
+
+  # Prepare info for a single test
+  item_prep <- function(t) {
+    if (convertpng) file <- paste(t$hash, "png", sep=".")
+    else            file <- paste(t$hash, t$type , sep=".")
+
+    data.frame(desc = t$desc, file, hash = t$hash)
   }
 
-  # Get the list of info about all tests, then write information about each of the items
-  for (i in seq_len(nrow(testinfo))) {
-    write(item_html(testinfo[i, ], convertpng), htmlfile, append = TRUE)
-  }
+  vtitems <- lapply(split(testinfo, 1:nrow(testinfo)), item_prep)
+  vtitems <- iteratelist(vtitems)
 
-  write('</body></html>', htmlfile, append = TRUE)
+  write(whisker.render(template), htmlfile)
+
 
   if (convertpng) {
     convert_png(testinfo$hash, imagedir, htmldir)
