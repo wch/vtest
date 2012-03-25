@@ -195,7 +195,7 @@ find_default_resultdir <- function(pkg = NULL) {
 
 
 # Get the resultset table for a given commit or resultset_hash
-get_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NULL) {
+load_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NULL) {
   if (is.null(resultdir))  stop("resultdir must be specified.")
   if (is.null(commit) && is.null(resultset_hash))
     stop("Must specify either commit or resultset_hash.")
@@ -214,7 +214,7 @@ get_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NULL
 
 
 # Get the resultset table for the last test run
-get_lastresultset <- function(resultdir = NULL) {
+load_lastresultset <- function(resultdir = NULL) {
   if (is.null(resultdir))  stop("resultdir must be specified.")
   return(read.csv(file.path(resultdir, "last_resultset.csv"), stringsAsFactors = FALSE))
 }

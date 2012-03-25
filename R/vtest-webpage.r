@@ -24,11 +24,11 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
   if (ref == "") {
     reftext <- "last local test"
     commit <- "NA"
-    resultset <- get_lastresultset(resultdir)
+    resultset <- load_lastresultset(resultdir)
   } else {
     reftext <- ref
     commit <- git_find_commit_hash(pkg$path, ref)
-    resultset <- get_resultset(commit, resultdir)
+    resultset <- load_resultset(commit, resultdir)
   }
 
   # Filter results

@@ -14,21 +14,21 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   if (ref1 == "") {
     ref1text <- "last local test"
     ref1h <- ""
-    ti1 <- get_lastresultset(resultdir = resultdir)
+    ti1 <- load_lastresultset(resultdir = resultdir)
   } else {
     ref1text <- ref1
     ref1h <- git_find_commit_hash(pkg$path, ref1)
-    ti1 <- get_resultset(commit = ref1h, resultdir = resultdir)
+    ti1 <- load_resultset(commit = ref1h, resultdir = resultdir)
   }
 
   if (ref2 == "") {
     ref2text <- "last local test"
     ref2h <- ""
-    ti2 <- get_lastresultset(resultdir = resultdir)
+    ti2 <- load_lastresultset(resultdir = resultdir)
   } else {
     ref2text <- ref2
     ref2h <- git_find_commit_hash(pkg$path, ref2)
-    ti2 <- get_resultset(commit = ref2h, resultdir = resultdir)
+    ti2 <- load_resultset(commit = ref2h, resultdir = resultdir)
   }
 
   # Keep just a few columns
