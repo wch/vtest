@@ -194,27 +194,27 @@ find_default_resultdir <- function(pkg = NULL) {
 }
 
 
-# Get the testinfo table for a given commit or testinfo_hash
-get_testinfo <- function(commit = NULL, testinfo_hash = NULL, resultdir = NULL) {
+# Get the resultset table for a given commit or resultset_hash
+get_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NULL) {
   if (is.null(resultdir))  stop("resultdir must be specified.")
-  if (is.null(commit) && is.null(testinfo_hash))
-    stop("Must specify either commit or testinfo_hash.")
-  else if (!is.null(commit) && !is.null(testinfo_hash))
-    stop("Must specify one of commit or testinfo_hash, not both.")
+  if (is.null(commit) && is.null(resultset_hash))
+    stop("Must specify either commit or resultset_hash.")
+  else if (!is.null(commit) && !is.null(resultset_hash))
+    stop("Must specify one of commit or resultset_hash, not both.")
 
-  testinfo_all <- read.csv(file.path(resultdir, "testinfo.csv"), stringsAsFactors = FALSE)
+  resultsets <- read.csv(file.path(resultdir, "resultsets.csv"), stringsAsFactors = FALSE)
 
   if (!is.null(commit)) {
     commits <- read.csv(file.path(resultdir, "commits.csv"), stringsAsFactors = FALSE)
-    testinfo_hash <- commits$testinfo_hash[commits$commit == commit]
+    resultset_hash <- commits$resultset_hash[commits$commit == commit]
   }
 
-  return(testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, ])
+  return(resultsets[resultsets$resultset_hash == resultset_hash, ])
 }
 
 
-# Get the testinfo table for the last test run
-get_lasttestinfo <- function(resultdir = NULL) {
+# Get the resultset table for the last test run
+get_lastresultset <- function(resultdir = NULL) {
   if (is.null(resultdir))  stop("resultdir must be specified.")
-  return(read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE))
+  return(read.csv(file.path(resultdir, "last_resultset.csv"), stringsAsFactors = FALSE))
 }

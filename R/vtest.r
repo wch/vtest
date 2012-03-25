@@ -10,9 +10,9 @@ get_vtest_imagedir <- NULL
 
 get_vcontext <- NULL
 set_vcontext <- NULL
-init_vtestinfo <- NULL
-get_vtestinfo <- NULL
-append_vtestinfo <- NULL
+init_vresultset <- NULL
+get_vresultset <- NULL
+append_vresultset <- NULL
 
 local({
   pkg <- NULL       # The package object
@@ -22,7 +22,7 @@ local({
 
   context <- NULL   # The context of a set of tests (usually in one script)
   context_count <- NULL # Keep count of tests, within this context
-  testinfo <- NULL  # Information about each test in a context
+  resultset <- NULL  # Information about each test in a context
 
   # These are used by the top-level vtest function
   set_vtest_pkg <<- function(value) pkg <<- value
@@ -41,25 +41,25 @@ local({
     context_count <<- 0
   }
 
-  # Create a zero-row data frame to hold testinfo
-  init_vtestinfo <<- function() {
+  # Create a zero-row data frame to hold resultset
+  init_vresultset <<- function() {
     cols <- c("context", "desc", "type", "width", "height", "dpi", "err",
               "hash", "order")
-    testinfo <<- setNames(data.frame(t(rep(NA, length(cols)))), cols)
-    testinfo <<- testinfo[-1, ]
+    resultset <<- setNames(data.frame(t(rep(NA, length(cols)))), cols)
+    resultset <<- resultset[-1, ]
   }
 
-  get_vtestinfo <<- function() testinfo
+  get_vresultset <<- function() resultset
 
   # Add information about a single test
-  append_vtestinfo <<- function(context, desc, type, width, height, dpi, err, hash, order) {
+  append_vresultset <<- function(context, desc, type, width, height, dpi, err, hash, order) {
     # Check that context + description aren't already used
-    if (sum(context == testinfo$context & desc == testinfo$desc) != 0)
-      stop(contest, ":\"", desc, "\" cannot be added to vtestinfo because it is already present.")
+    if (sum(context == resultset$context & desc == resultset$desc) != 0)
+      stop(contest, ":\"", desc, "\" cannot be added to resultset because it is already present.")
 
     context_count <<- context_count + 1
 
-    testinfo <<- rbind(testinfo,
+    resultset <<- rbind(resultset,
       data.frame(context = context, desc = desc, type = type, width = width,
         height = height, dpi = dpi, err = err, hash = hash,
         order = context_count, stringsAsFactors = FALSE))
@@ -107,7 +107,7 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
     dir.create(imagedir, recursive = TRUE, showWarnings = FALSE)
   }
 
-  init_vtestinfo()
+  init_vresultset()
 
   # Run the test scripts
   files <- dir(test_path, full.names = TRUE, include.dirs = FALSE)
@@ -128,18 +128,17 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
 #  }
 
 
-  # ============ Hash testinfo and save to lasttest.csv ===========
+  # ============ Hash resultset and save to last_resultset.csv ===========
 
   # If running the full battery of tests, then we can hash the entire test set
   # and compare it to the test set table
-  testinfo_hash <- hash_testinfo(get_vtestinfo())
+  resultset_hash <- hash_resultset(get_vresultset())
 
-  # Always save results to lasttest.csv
-  message("Saving test results to lasttest.csv")
-  write.csv(cbind(testinfo_hash, get_vtestinfo()),
-    file.path(resultdir, "lasttest.csv"), row.names = FALSE)
+  # Always save results to last_resultset.csv
+  message("Saving test results to last_resultset.csv")
+  write.csv(cbind(resultset_hash, get_vresultset()),
+    file.path(resultdir, "last_resultset.csv"), row.names = FALSE)
 
-  # TODO: Add check that vtest is run on entire set of tests, before writing (allow a force flag?)
   # TODO: turn this into function
   # ============ Check hash of testset results ===========
 
@@ -148,17 +147,23 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
 
   # Assume that we'll write the commit data; if certain things happen, set to FALSE
   write_commitdata <- TRUE
-  # Assume that we'll write the testinfo data; if certain things happen, set to FALSE
-  write_testinfo <- TRUE
+  # Assume that we'll write the resultset data; if certain things happen, set to FALSE
+  write_resultset <- TRUE
 
-  message("Hash for vtest results is ", testinfo_hash)
+  if (filter != "") {
+    write_commitdata <- FALSE
+    write_resultset <- FALSE
+    message("Did not run the entire set of tests, so the results can't be added to the database.")
+  }
+
+  message("Hash for vtest results is ", resultset_hash)
   message(pkg$package, " is at commit ", commit)
   if (clean_repo) {
     message("Working tree state is clean, so results can be added to database.")
   } else {
     message("Working tree state is dirty, so results cannot be added to database.")
     write_commitdata <- FALSE
-    write_testinfo   <- FALSE
+    write_resultset   <- FALSE
   }
 
   # Read existing commit test results
@@ -170,12 +175,12 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
   commitmatch <- commitdata$commit == commit
   if (any(commitmatch)) {
     message("Previous results for commit ", substr(commit, 1, 6), " found: ",
-      paste(commitdata$testinfo_hash[commitmatch], collapse = ", "))
+      paste(commitdata$resultset_hash[commitmatch], collapse = ", "))
 
     if (sum(commitmatch) > 1)
       stop("More than one matching commit in database. This indicates a problem with the database.")
 
-    if (commitdata$testinfo_hash == testinfo_hash) {
+    if (commitdata$resultset_hash == resultset_hash) {
       message("Old and current results match! Good.")
       write_commitdata <- FALSE
     } else {
@@ -187,18 +192,18 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
         else {
           commitdata <- commitdata[-commitmatch, ]
           commitdata <- rbind(commitdata, data.frame(commit = commit,
-                                                     testinfo_hash = testinfo_hash))
+                                                     resultset_hash = resultset_hash))
         }
       }
     }
   } else {
     commitdata <- rbind(commitdata, data.frame(commit = commit,
-                                               testinfo_hash = testinfo_hash))
+                                               resultset_hash = resultset_hash))
 
     reply <- readline("Results are new. Would you like to add them to the database? (y/n) ")
     if (tolower(reply) != "y") {
       write_commitdata <- FALSE
-      write_testinfo <- FALSE
+      write_resultset <- FALSE
     }
   }
 
@@ -208,40 +213,40 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
   }
 
   # TODO: turn this into function
-  # ============== Add to the testinfo table ======================
+  # ============== Add to the resultset table ======================
 
   # Read existing test results
-  if (file.exists(file.path(resultdir, "testinfo.csv")))
-    testinfo_all <- read.csv(file.path(resultdir, "testinfo.csv"), stringsAsFactors = FALSE)
+  if (file.exists(file.path(resultdir, "resultsets.csv")))
+    resultsets <- read.csv(file.path(resultdir, "resultsets.csv"), stringsAsFactors = FALSE)
   else
-    testinfo_all <- data.frame(testinfo_hash = character())
+    resultsets <- data.frame(resultset_hash = character())
 
-  # Get the old results that match the current testinfo hash (if present)
+  # Get the old results that match the current resultset hash (if present)
   # It would be nice to be able to use:
-  #   subset(testinfo_all, testinfo_hash == testinfo_hash, select = -testinfo_hash)
+  #   subset(resultsets, resultset_hash == resultset_hash, select = -resultset_hash)
   # but this case is very problematic for subset because of re-used var name and
   # because when there are no matches, subset returns a 1-row NA-filled data frame.
-  testinfo_match <- testinfo_all[testinfo_all$testinfo_hash == testinfo_hash, , drop = FALSE]
-  testinfo_match <- testinfo_match[!(names(testinfo_match) %in% "testinfo_hash")]
+  resultset_match <- resultsets[resultsets$resultset_hash == resultset_hash, , drop = FALSE]
+  resultset_match <- resultset_match[!(names(resultset_match) %in% "resultset_hash")]
 
-  if (nrow(testinfo_match) > 0) {
-    message("Existing results found for testinfo hash ", testinfo_hash)
+  if (nrow(resultset_match) > 0) {
+    message("Existing results found for resultset hash ", resultset_hash)
     message("Checking existing result hash just to make sure... ", appendLF = FALSE)
-    testinfo_match_hash <- hash_testinfo(testinfo_match)
-    if (testinfo_match_hash != testinfo_hash)
-      stop("Re-hashing old testinfo results in a different hash value: ",
-           testinfo_match_hash,
-           "\nThis indicates a problem with the testinfo database.")
+    resultset_match_hash <- hash_resultset(resultset_match)
+    if (resultset_match_hash != resultset_hash)
+      stop("Re-hashing old resultset results in a different hash value: ",
+           resultset_match_hash,
+           "\nThis indicates a problem with the resultset database.")
 
     message("Hash matches!")
-    message("No need to add new testinfo to database.")
+    message("No need to add new resultset to database.")
   } else {
-    message("No existing results found for testinfo hash ", testinfo_hash)
-    if (write_testinfo) {
-      message("Adding new testinfo to database.")
+    message("No existing results found for resultset hash ", resultset_hash)
+    if (write_resultset) {
+      message("Adding new resultset to database.")
 
-      testinfo_all <- rbind(testinfo_all, cbind(testinfo_hash, get_vtestinfo()))
-      write.csv(testinfo_all, file.path(resultdir, "testinfo.csv"), row.names = FALSE)
+      resultsets <- rbind(resultsets, cbind(resultset_hash, get_vresultset()))
+      write.csv(resultsets, file.path(resultdir, "resultsets.csv"), row.names = FALSE)
     }
   }
 }
@@ -271,7 +276,7 @@ end_vcontext <- function() {
 }
 
 
-# Save an individual test to file, and record information using append_vtestinfo
+# Save an individual test to file, and record information using append_vresultset
 # This presently only works with pdf; other file types will fail
 # * desc: a short description of the test
 # * filename: output filename (not including extension, like ".pdf"). If NULL, use MD5
@@ -311,7 +316,7 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
     file.rename(cleanpdf, file.path(get_vtest_imagedir(), filehash))
 
   # Append the info for this test in the vis_info list
-  append_vtestinfo(context = get_vcontext(), desc = desc,
+  append_vresultset(context = get_vcontext(), desc = desc,
     type = device, width = width, height = height, dpi = dpi,
     err = err, hash = filehash)
 
@@ -319,8 +324,8 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 }
 
 
-# Get a hash of a testinfo table
-hash_testinfo <- function(t) {
+# Get a hash of a resultset table
+hash_resultset <- function(t) {
   # Reset the row names so it hashes like the original
   rownames(t) <- NULL
   # Sort by context and then order

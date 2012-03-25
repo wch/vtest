@@ -10,25 +10,25 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   if (is.null(resultdir))
     resultdir <- find_default_resultdir()
 
-  # Get the testinfo data for ref1 and ref2
+  # Get the resultset data for ref1 and ref2
   if (ref1 == "") {
     ref1text <- "last local test"
     ref1h <- ""
-    ti1 <- get_lasttestinfo(resultdir = resultdir)
+    ti1 <- get_lastresultset(resultdir = resultdir)
   } else {
     ref1text <- ref1
     ref1h <- git_find_commit_hash(pkg$path, ref1)
-    ti1 <- get_testinfo(commit = ref1h, resultdir = resultdir)
+    ti1 <- get_resultset(commit = ref1h, resultdir = resultdir)
   }
 
   if (ref2 == "") {
     ref2text <- "last local test"
     ref2h <- ""
-    ti2 <- get_lasttestinfo(resultdir = resultdir)
+    ti2 <- get_lastresultset(resultdir = resultdir)
   } else {
     ref2text <- ref2
     ref2h <- git_find_commit_hash(pkg$path, ref2)
-    ti2 <- get_testinfo(commit = ref2h, resultdir = resultdir)
+    ti2 <- get_resultset(commit = ref2h, resultdir = resultdir)
   }
 
   # Keep just a few columns
@@ -41,6 +41,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   td$status[ is.na(td$hash1) & !is.na(td$hash2)] <- "A" # Added
   td$status[!is.na(td$hash1) &  is.na(td$hash2)] <- "D" # Deleted
   td$status[td$hash1 != td$hash2] <- "C"                # Changed
+
+  td$status <- factor(td$status, levels = c("U", "A", "D", "C")) 
 
   # Sort by order in ref1, then ref2
   td <- arrange(td, order1, order2)

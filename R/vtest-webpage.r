@@ -24,19 +24,19 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
   if (ref == "") {
     reftext <- "last local test"
     commit <- "NA"
-    testinfo <- read.csv(file.path(resultdir, "lasttest.csv"), stringsAsFactors = FALSE)
+    resultset <- get_lastresultset(resultdir)
   } else {
     reftext <- ref
     commit <- git_find_commit_hash(pkg$path, ref)
-    testinfo <- get_testinfo(commit = commit, resultdir = resultdir)
+    resultset <- get_resultset(commit, resultdir)
   }
 
   # Filter results
-  testinfo <- testinfo[match_filter_idx(testinfo$context, filter), ]
+  resultset <- resultset[match_filter_idx(resultset$context, filter), ]
 
-  make_vtest_indexpage(testinfo, htmldir, reftext, commit)
+  make_vtest_indexpage(resultset, htmldir, reftext, commit)
 
-  ddply(testinfo, .(context), .fun = function(ti) {
+  ddply(resultset, .(context), .fun = function(ti) {
       make_vtest_contextpage(ti, htmldir, imagedir, reftext, commit, convertpng)
   })
 
@@ -45,7 +45,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 
 
 # Makes the overall index web page
-make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "", commit = "") {
+make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit = "") {
 
   template <- '
 <html><head>
@@ -82,10 +82,10 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "", commit 
 '
 
   # Get contexts and counts
-  vts <- ddply(testinfo, .(context), summarise, n = length(context))
+  vts <- ddply(resultset, .(context), summarise, n = length(context))
   vts <- split(vts, 1:nrow(vts))
   vts <- iteratelist(vts)
-  total <- nrow(testinfo)  # Total number of tests
+  total <- nrow(resultset)  # Total number of tests
 
   whisker.render(template)
 
@@ -96,16 +96,16 @@ make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "", commit 
 
 
 # Makes the web page for a single context
-make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
+make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
     reftext = "", commit = "", convertpng = TRUE)  {
   if (is.null(htmldir))  stop("Need to specify htmldir")
   if (is.null(imagedir)) stop("Need to specify imagedir")
 
   # Sort by order
-  testinfo <- testinfo[order(testinfo$order), ]
+  resultset <- resultset[order(resultset$order), ]
 
   # Get context
-  context <- unique(testinfo$context)
+  context <- unique(resultset$context)
   if (length(context) != 1)
     stop("There is not exactly one context in this subset: ", context)
 
@@ -149,17 +149,17 @@ make_vtest_contextpage <- function(testinfo, htmldir = NULL, imagedir = NULL,
     data.frame(desc = t$desc, file, hash = t$hash)
   }
 
-  vtitems <- lapply(split(testinfo, 1:nrow(testinfo)), item_prep)
+  vtitems <- lapply(split(resultset, 1:nrow(resultset)), item_prep)
   vtitems <- iteratelist(vtitems)
 
   write(whisker.render(template), htmlfile)
 
 
   if (convertpng) {
-    convert_png(testinfo$hash, imagedir, htmldir)
+    convert_png(resultset$hash, imagedir, htmldir)
   } else {
-    file.copy(file.path(imagedir, testinfo$hash),
-      file.path(htmldir, paste(testinfo$hash, ".pdf", sep="")))
+    file.copy(file.path(imagedir, resultset$hash),
+      file.path(htmldir, paste(resultset$hash, ".pdf", sep="")))
   }
 
   return(htmlfile)
