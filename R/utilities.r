@@ -92,45 +92,6 @@ compare_png <- function(files1, files2, filesout) {
   }
 }
 
-
-# A function for checking out a path (like "visual_test) from a commit ref,
-#  or use "" for current state
-checkout_worktree <- function(ref = "", outdir = NULL, paths = "", pkgpath = NULL) {
-  if (is.null(outdir))  outdir <- file.path(tempdir(), "checkout-workdir")
-
-  # TODO: change this - it's dangerous if someone uses "/"!
-  unlink(outdir, recursive = TRUE)      # Delete existing directory
-  dir.create(outdir, recursive = TRUE)  # Create the new directory
-
-  if (ref == "") {
-    # If blank ref, simply copy the files over from the working tree
-    # First get the (non-dir) files only, then recurse into directories
-    fullpaths <- file.path(pkgpath, paths)
-    dirs <- file.info(fullpaths)$isdir
-    fullpaths <- fullpaths[!dirs]  # Drop the dirs from the vector of full paths
-    fullpaths <- c(fullpaths, list.files(fullpaths[dirs], recursive = TRUE,
-                                         full.names = TRUE))
-
-    # Get the paths, relative to pkgpath
-    relpaths <- sapply(fullpaths, relativePath, pkgpath, USE.NAMES = FALSE)
-
-    # Find which directories need to be created, and then create them
-    newdirs <- unique(file.path(outdir, dirname(relpaths)))
-    sapply(newdirs, dir.create, recursive = TRUE, showWarnings = FALSE)
-    # Copy the files over
-    file.copy(fullpaths, file.path(outdir, relpaths))
-
-  } else {
-    # Checkout the git ref into outdir
-    if (systemCall("git", c("--work-tree", outdir, "checkout", ref, "--", paths),
-                   rundir = pkgpath)$status != 0)
-      stop("git checkout failed.")
-    # Need to reset git index status after the checkout (so git doesn't get confused)
-    systemCall("git", c("reset", "--mixed"), rundir = pkgpath)
-  }
-}
-
-
 # Find path to d, relative to start. If `start` is NULL, use current dir
 # if d is ./foo/bar and start is ./foo, then return "bar"
 # if d is ./zz and start is ./foo/bar, then return "../../zz"
