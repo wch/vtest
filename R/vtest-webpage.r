@@ -46,29 +46,49 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 # Makes the overall index web page
 make_vtest_indexpage <- function(testinfo, htmldir = NULL, reftext = "") {
 
-  # Get context
-  contexts <- unique(testinfo$context)
+  template <- '
+<html><head>
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<title>Visual tests</title></head>
+<body>
+<h1>Visual tests</h1>
+
+<table>
+  <thead><tr>
+    <th>Context</th>
+    <th>Total tests</th>
+  </tr></thead>
+{{#vts}}
+{{#value}}
+    <tr>
+      <td class="context"><a href="{{context}}.html">{{context}}</a></td>
+      <td class="num">{{n}}</td>
+    </tr>
+{{/value}}
+{{/vts}}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td class="total">Total</td>
+      <td class="num">{{total}}</td>
+    </tr>
+  </tfoot>
+</table>
+</body>
+</html>
+'
+
+  # Get contexts and counts
+  vts <- ddply(testinfo, .(context), summarise, n = length(context))
+  vts <- split(vts, 1:nrow(vts))
+  vts <- iteratelist(vts)
+  total <- nrow(testinfo)  # Total number of tests
+
+  whisker.render(template)
 
   htmlfile <- file.path(normalizePath(htmldir), "index.html")
   message("Writing ", htmlfile)
-  write(paste('<html><head>\n',
-        '<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />',
-        '<title>Visual tests',
-        '</title></head><body><h1>Visual tests',
-        '</h1>\n',
-        '<ul class="contextlist">\n',
-        sep = ""), htmlfile)
-
-  # Write HTML code for a single context
-  item_html <- function(context) {
-    paste('  <li class="context"><a href="', context, '.html">', context, '</a></li>\n', sep = "")
-  }
-
-  # Get the list of info about all tests, then write information about each of the items
-  write(sapply(contexts, item_html), htmlfile, append = TRUE)
-
-  write('</ul></body></html>', htmlfile, append = TRUE)
-
+  write(whisker.render(template), htmlfile, append = TRUE)
 }
 
 
