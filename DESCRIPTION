@@ -10,7 +10,9 @@ Imports:
     devtools,
     ggplot2,
     digest,
-    plyr
+    plyr,
+    reshape2,
+    whisker
 License: MIT
 Collate:
     'utilities.r'

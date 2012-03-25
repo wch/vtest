@@ -36,11 +36,84 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   if (ref2 == "")  ref2text <- "last local test"
   else             ref2text <- ref2
 
+  make_vdiff_indexpage(vdiff, ref1text, ref2text, diffdir)
+
   for (context in unique(vdiff$context)) {
     make_vdiff_contextpage(vdiff, context, ref1text, ref2text, diffdir, imagedir, convertpng, method = method)
   }
 
   invisible()
+}
+
+
+make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "", diffdir = NULL) {
+
+  # Get context
+  contexts <- unique(vdiff$context)
+
+  htmlfile <- file.path(normalizePath(diffdir), "index.html")
+  message("Writing ", htmlfile)
+
+template <- '
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<title>Visual test diffs</title>
+</head>
+<body>
+<h1>Visual test diffs</h1>
+<h2>Comparing <span class="refspec">{{ref1text}}</span> to <span class="refspec">{{ref2text}}</span></h2>
+
+<table>
+  <thead><tr>
+    <th>Context</th>
+    <th>Changed</th>
+    <th>Added</th>
+    <th>Deleted</th>
+    <th>Total tests</th>
+  </tr></thead>
+  <tbody>
+{{#vds}}
+{{#value}}
+    <tr>
+      <td class="context"><a href="{{context}}.html"}>{{context}}</a></td>
+      <td class="num">{{C}}</td>
+      <td class="num">{{A}}</td>
+      <td class="num">{{D}}</td>
+      <td class="num">{{Total}}</td>
+    </tr>
+{{/value}}
+{{/vds}}
+  </tbody>
+  <tfoot>
+{{#vdtotal}}
+    <tr>
+      <td class="total">Total</td>
+      <td class="num">{{C}}</td>
+      <td class="num">{{A}}</td>
+      <td class="num">{{D}}</td>
+      <td class="num">{{Total}}</td>
+    </tr>
+{{/vdtotal}}
+  </tfoot>
+</table>
+</body>
+</html>
+'
+
+  # Get a summary count for each category
+  vds <- ddply(vdiff, .(context, status), summarise, n = length(status), .drop=FALSE)
+  vds <- dcast(vds, context ~ status, value.var = "n")
+  vds$Total <- vds$C + vds$A + vds$D + vds$U  # Total for each context
+  vds <- split(vds, 1:nrow(vds))
+  vds <- iteratelist(vds)
+
+  # Total across all contexts
+  vdtotal <- ddply(vdiff, .(status), summarise, n = length(status), .drop=FALSE)
+  vdtotal <- dcast(vdtotal, 1 ~ status, value.var = "n")
+  vdtotal$Total <- vdtotal$C + vdtotal$A + vdtotal$D + vdtotal$U
+
+  write(whisker.render(template), htmlfile, append = TRUE)
 }
 
 
