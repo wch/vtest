@@ -18,10 +18,12 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
     reftext <- "last local test"
     commit <- "NA"
     resultset <- load_lastresultset()
+    imagedir <- get_vtest_lasttest_dir()
   } else {
     reftext <- ref
     commit <- git_find_commit_hash(get_vtest_pkg()$path, ref)
     resultset <- load_resultset(commit)
+    imagedir <- get_vtest_image_dir()
   }
 
   # Filter results
@@ -30,7 +32,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
   make_vtest_indexpage(resultset, get_vtest_htmldir(), reftext, commit)
 
   ddply(resultset, .(context), .fun = function(ti) {
-      make_vtest_contextpage(ti, get_vtest_htmldir(), get_vtest_imagedir(), reftext, commit, convertpng)
+      make_vtest_contextpage(ti, get_vtest_htmldir(), imagedir, reftext, commit, convertpng)
   })
 
   invisible()

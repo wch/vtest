@@ -229,9 +229,17 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Save the pdf to a temporary file
   temppdf <- tempfile("vtest")
+  # TODO: find a better way to handle warnings. Right now, if there's a warning,
+  # it stops execution of ggsave and the file isn't saved. We need to record
+  # that there's a warning (in 'err') and then re-run the ggsave so that the
+  # file actually gets written. This is an ugly way to do it. Is it possible
+  # to record the warning AND let it finish running?
   tryCatch({ ggsave(temppdf, width = width, height = height, dpi = dpi,
+              device = match.fun(device), compress = FALSE) },
+           warning = function(w) {
+             err <<- "warn"
+             ggsave(temppdf, width = width, height = height, dpi = dpi,
                device = match.fun(device), compress = FALSE) },
-           warning = function(w) { err <<- "warn"; warning(w) },
            error   = function(e) { err <<- "error"; warning(e) })
 
   # Zero out the dates and write modified PDF file to the output dir
