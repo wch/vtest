@@ -113,32 +113,6 @@ compare_png <- function(files1, files2, filesout) {
   }
 }
 
-# Find path to d, relative to start. If `start` is NULL, use current dir
-# if d is ./foo/bar and start is ./foo, then return "bar"
-# if d is ./zz and start is ./foo/bar, then return "../../zz"
-relativePath <- function(path, start = NULL) {
-  if (is.null(start)) start <- getwd()
-
-  # If either of these fail (with a warning), it'll give an incorrect relative
-  # path, so throw an error.
-  tryCatch({
-    p <- strsplit(normalizePath(path,  winslash = "/"), "/")[[1]]
-    s <- strsplit(normalizePath(start, winslash = "/"), "/")[[1]]
-  }, warning = function(w) stop(w) )
-
-  len <- min(length(s), length(p))
-  # Find if any of these pieces are different. If so, that's the first mismatch;
-  #   if not, then the next piece is the first mismatch.
-  mismatches <- s[1:len] != p[1:len]
-  if (any(mismatches))  lastmatch <- min(which(mismatches)) - 1
-  else                  lastmatch <- len
-
-  p <- p[-(1:lastmatch)]                            # remove everything that matches
-
-  # Build the relative path, adding ..'s for each path level in s
-  paste(c(rep("..", length(s)-lastmatch), p), collapse="/")
-}
-
 
 # Call system2, but capture both the exit code and the stdout+stderr
 # Supposedly in the next version of R, system2 will return this information.
