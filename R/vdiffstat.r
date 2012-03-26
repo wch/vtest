@@ -1,6 +1,6 @@
 # Find files modified between ref1 and ref2
 # If ref2 is "", we treat it to mean the last test results.
-# * showall: if FALSE, don't return Unchanged; if true TRUE, return Unchanged
+# * all: if FALSE, don't return Unchanged; if true TRUE, return Unchanged
 #     (in addition to everything else)
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
@@ -52,5 +52,5 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   if (!all)
     td <- td[td$status != "U", ]
 
-  return(td)
+  return(arrange(td, context, order1, order2))
 }
