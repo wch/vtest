@@ -1,0 +1,37 @@
+<html><head>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+<title>Visual tests</title></head>
+<body>
+<h1>Visual tests</h1>
+<h2>Results for <span class="refspec">{{reftext}}</span></h2>
+<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
+
+<table>
+  <thead><tr>
+    <th>Context</th>
+    <th>Tests</th>
+    <th>Warnings</th>
+    <th>Errors</th>
+  </tr></thead>
+{{#vts}}
+{{#value}}
+    <tr>
+      <td class="context"><a href="{{context}}.html">{{context}}</a></td>
+      <td class="num">{{n}}</td>
+      <td class="{{warn_class}}">{{nwarn}}</td>
+      <td class="{{error_class}}">{{nerror}}</td>
+    </tr>
+{{/value}}
+{{/vts}}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td class="total">Total</td>
+      <td class="num">{{total}}</td>
+      <td class="{{warn_class}}">{{totalwarn}}</td>
+      <td class="{{error_class}}">{{totalerror}}</td>
+    </tr>
+  </tfoot>
+</table>
+</body>
+</html>

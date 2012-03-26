@@ -54,59 +54,8 @@ make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "",
   # Get context
   contexts <- unique(vdiff$context)
 
-  htmlfile <- file.path(normalizePath(diffdir), "index.html")
-  message("Writing ", htmlfile)
-
-template <- '
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-<title>Visual test diffs</title>
-</head>
-<body>
-<h1>Visual test diffs</h1>
-<h2>Comparing <span class="refspec">{{ref1text}}</span> to <span class="refspec">{{ref2text}}</span></h2>
-<p>Commits: <span class="smallrefspec">{{commit1}}</span>, <span class="smallrefspec">{{commit2}}</span></p>
-
-<table>
-  <thead><tr>
-    <th>Context</th>
-    <th>Total tests</th>
-    <th>Added</th>
-    <th>Deleted</th>
-    <th>Changed</th>
-  </tr></thead>
-  <tbody>
-{{#vds}}
-{{#value}}
-    <tr>
-      <td class="context"><a href="{{context}}.html"}>{{context}}</a></td>
-      <td class="num">{{Total}}</td>
-      <td class="{{A_class}}">{{A}}</td>
-      <td class="{{D_class}}">{{D}}</td>
-      <td class="{{C_class}}">{{C}}</td>
-    </tr>
-{{/value}}
-{{/vds}}
-  </tbody>
-  <tfoot>
-{{#vdtotal}}
-    <tr>
-      <td class="total">Total</td>
-      <td class="num">{{Total}}</td>
-      <td class="{{A_class}}">{{A}}</td>
-      <td class="{{D_class}}">{{D}}</td>
-      <td class="{{C_class}}">{{C}}</td>
-    </tr>
-{{/vdtotal}}
-  </tfoot>
-</table>
-</body>
-</html>
-'
-
   # Get a summary count for each category
-  vds <- ddply(vdiff, .(context, status), summarise, n = length(status), .drop=FALSE)
+  vds <- ddply(vdiff, .(context, status), summarise, n = length(status), .drop = FALSE)
   vds <- dcast(vds, context ~ status, value.var = "n")
   vds$Total <- vds$C + vds$A + vds$D + vds$U  # Total for each context
   # css classes for warning and error cells
@@ -117,16 +66,23 @@ template <- '
   vds <- split(vds, 1:nrow(vds))
   vds <- iteratelist(vds)
 
-  # Total across all contexts
-  vdtotal <- ddply(vdiff, .(status), summarise, n = length(status), .drop=FALSE)
-  vdtotal <- dcast(vdtotal, 1 ~ status, value.var = "n")
-  vdtotal$Total <- vdtotal$C + vdtotal$A + vdtotal$D + vdtotal$U
-  # css classes for warning and error cells
-  vdtotal$C_class <- ifelse(vdtotal$C == 0, "num", "changed")
-  vdtotal$A_class <- ifelse(vdtotal$A == 0, "num", "added")
-  vdtotal$D_class <- ifelse(vdtotal$D == 0, "num", "deleted")
+  # List with data for the template
+  data <- list(vds = vds, ref1text = ref1text, ref2text = ref2text,
+    commit1 = commit1, commit2 = commit2)
 
-  write(whisker.render(template), htmlfile, append = TRUE)
+  # Total across all contexts
+  data$Total <- nrow(vdiff)
+  data$C     <- sum(vdiff$status == "C")
+  data$A     <- sum(vdiff$status == "A")
+  data$D     <- sum(vdiff$status == "D")
+  # css classes for warning and error cells
+  data$C_class <- ifelse(data$C > 0, "changed", "num")
+  data$A_class <- ifelse(data$A > 0, "added", "num")
+  data$D_class <- ifelse(data$D > 0, "deleted", "num")
+
+  htmlfile <- file.path(normalizePath(diffdir), "index.html")
+  message("Writing ", htmlfile)
+  render_template('vdiff-index', data, htmlfile)
 }
 
 
@@ -178,65 +134,6 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
   }
 
 
-template <-
-'<html>
-<head>
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-<title>Visual tests diffs: {{context}}</title>
-</head>
-<body>
-<h1>Visual test diffs: {{context}}</h1>
-<h2>Comparing <span class="refspec">{{ref1text}}</span> to <span class="refspec">{{ref2text}}</span></h2>
-<p>Commits: <span class="smallrefspec">{{commit1}}</span>, <span class="smallrefspec">{{commit2}}</span></p>
-
-<table>
-  <thead><tr>
-    <th>Changed</th>
-    <th>Added</th>
-    <th>Deleted</th>
-    <th>Total tests</th>
-  </tr></thead>
-  <tbody>
-{{#vstat}}
-    <tr>
-      <td class="{{C_class}}">{{C}}</td>
-      <td class="{{A_class}}">{{A}}</td>
-      <td class="{{D_class}}">{{D}}</td>
-      <td class="num">{{Total}}</td>
-    </tr>
-{{/vstat}}
-  </tbody>
-</table>
-
-{{#vditems}}
-{{#value}}
-<div class="float"><div class="{{status}}">
-  <div class="header">
-    <p class="description">{{desc}}</p>
-  </div>
-  <div class="imageset">
-    <span class="imagewrap">
-      <div><span class="refspec">{{ref1text}}</span></div>
-      <div class="image">{{{cell1}}}</div>
-      <div class="hash">{{hash1}}</div>
-    </span>
-    <span class="imagewrap">
-      <div><span class="refspec">{{ref2text}}</span></div>
-      <div class="image">{{{cell2}}}</div>
-      <div class="hash">{{hash2}}</div>
-    </span>
-    <span class="imagewrap">
-      <div>Difference</div>
-      <div class="image">{{{celld}}}</div>
-    </span>
-  </div>
-</div></div>
-{{/value}}
-{{/vditems}}
-
-</body></html>
-'
-
   vstat <- list(C = sum(vdiff$status == "C"),
                 A = sum(vdiff$status == "A"),
                 D = sum(vdiff$status == "D"),
@@ -249,13 +146,17 @@ template <-
   vstat$D_class <- ifelse(vstat$D == 0, "num", "deleted")
 
 
-
   vditems <- lapply(split(vdiff, 1:nrow(vdiff)), item_prep, ref1text, ref2text, convertpng)
   vditems <- iteratelist(vditems)
 
+  # List with data for the template
+  data <- list(vstat = vstat, vditems = vditems,
+    ref1text = ref1text, ref2text = ref2text,
+    commit1 = commit1, commit2 = commit2)
+
   htmlfile <- file.path(normalizePath(diffdir), paste(context, ".html", sep = ""))
   message("Writing ", htmlfile)
-  write(whisker.render(template), htmlfile)
+  render_template('vdiff-context', data, htmlfile)
 
   # ========= PNG convert and compare ==========
 

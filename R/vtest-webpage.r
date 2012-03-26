@@ -25,7 +25,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
     reftext <- ref
     commit <- git_find_commit_hash(get_vtest_pkg()$path, ref)
     resultset <- load_resultset(commit)
-    imagedir <- get_vtest_image_dir()
+    imagedir <- get_vtest_imagedir()
   }
 
   # Filter results
@@ -56,7 +56,7 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
   vts <- iteratelist(vts)
 
   # List with data for the template
-  data <- list(vts = vts)
+  data <- list(vts = vts, reftext = reftext, commit = commit)
 
   # Stuff for the Total row
   data$total      <- nrow(resultset)              # Total number of tests
@@ -97,7 +97,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
   vtitems <- iteratelist(vtitems)
 
   # List with data for the template
-  data <- list(vtitems = vtitems)
+  data <- list(vtitems = vtitems, reftext = reftext, commit = commit)
 
   htmlfile <- file.path(normalizePath(htmldir), str_c(context, ".html"))
   message("Writing ", htmlfile)

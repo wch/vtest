@@ -1,0 +1,27 @@
+<html><head>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+<title>Visual tests: {{context}}</title></head>
+<body>
+<h1>Visual tests: {{context}}</h1>
+<h2>Results for <span class="refspec">{{reftext}}</span></h2>
+<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
+
+{{#vtitems}}
+{{#value}}
+<div class="float"><div class="{{err}}">
+  <div class="header">
+    <p class="description">{{desc}}</p>
+  </div>
+  <div class="imageset">
+    <span class="imagewrap">
+      <div class="image"><img src="{{file}}"></div>
+      <div class="hash">{{hash}}</div>
+      <div>{{err}}</div>
+    </span>
+  </div>
+</div></div>
+{{/value}}
+{{/vtitems}}
+
+</body>
+</html>

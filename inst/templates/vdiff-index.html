@@ -1,0 +1,44 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+<title>Visual test diffs</title>
+</head>
+<body>
+<h1>Visual test diffs</h1>
+<h2>Comparing <span class="refspec">{{ref1text}}</span> to <span class="refspec">{{ref2text}}</span></h2>
+<p>Commits: <span class="smallrefspec">{{commit1}}</span>, <span class="smallrefspec">{{commit2}}</span></p>
+
+<table>
+  <thead><tr>
+    <th>Context</th>
+    <th>Total tests</th>
+    <th>Added</th>
+    <th>Deleted</th>
+    <th>Changed</th>
+  </tr></thead>
+  <tbody>
+{{#vds}}
+{{#value}}
+    <tr>
+      <td class="context"><a href="{{context}}.html"}>{{context}}</a></td>
+      <td class="num">{{Total}}</td>
+      <td class="{{A_class}}">{{A}}</td>
+      <td class="{{D_class}}">{{D}}</td>
+      <td class="{{C_class}}">{{C}}</td>
+    </tr>
+{{/value}}
+{{/vds}}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td class="total">Total</td>
+      <td class="num">{{Total}}</td>
+      <td class="{{A_class}}">{{A}}</td>
+      <td class="{{D_class}}">{{D}}</td>
+      <td class="{{C_class}}">{{C}}</td>
+    </tr>
+  </tfoot>
+</table>
+</body>
+</html>
+
