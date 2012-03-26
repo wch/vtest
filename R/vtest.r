@@ -50,7 +50,6 @@ local({
   }
 
   init_vtest <<- function(pkg, testdir = NULL, resultdir = NULL) {
-    set_vtest_pkg(pkg)
 
     # Close context, if open
     if (!is.null(get_vcontext())) set_vcontext(NULL)
@@ -97,10 +96,11 @@ local({
 # Run visual tests
 # TODO: allow set testdir
 #' @export
-vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
+vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
 
+  set_vtest_pkg(pkg)
   init_vtest(pkg)
 
   if (!file.exists(get_vtest_dir()))

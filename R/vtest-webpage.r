@@ -7,7 +7,7 @@
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 #' @export
 vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) {
-  if(!is.null(pkg))  set_vtest_pkg(pkg)
+  set_vtest_pkg(pkg)
 
   if (!file.exists(get_vtest_htmldir()))
     dir.create(get_vtest_htmldir(), recursive = TRUE)
