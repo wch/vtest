@@ -9,23 +9,28 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   # Get the resultset data for ref1 and ref2
   if (ref1 == "") {
     ref1text <- "last local test"
-    ref1h <- ""
+    commit1 <- ""
     ti1 <- load_lastresultset()
   } else {
     ref1text <- ref1
-    ref1h <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
-    ti1 <- load_resultset(commit = ref1h)
+    commit1 <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
+    ti1 <- load_resultset(commit = commit1)
   }
 
   if (ref2 == "") {
     ref2text <- "last local test"
-    ref2h <- ""
+    commit2 <- ""
     ti2 <- load_lastresultset()
   } else {
     ref2text <- ref2
-    ref2h <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
-    ti2 <- load_resultset(commit = ref2h)
+    commit2 <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
+    ti2 <- load_resultset(commit = commit2)
   }
+
+  if (nrow(ti1) == 0)
+    warning("No resultset found for ref ", ref1, ", commit ", commit1)
+  if (nrow(ti2) == 0)
+    warning("No resultset found for ref ", ref2, ", commit ", commit2)
 
   # Keep just a few columns
   ti1 <- ti1[c("context", "desc", "order", "hash")]
