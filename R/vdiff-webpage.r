@@ -278,7 +278,7 @@ template <-
   }
   convertfiles <- convertfiles[!is.na(convertfiles)] # Drop NAs
 
-  convert_png(convertfiles, imagedir, diffdir, method = method)
+  convert_png_cached(convertfiles, imagedir, diffdir, method = method)
 
   if(nrow(changed) > 0) {
     compare_png(

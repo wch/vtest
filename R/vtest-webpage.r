@@ -169,7 +169,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
 
 
   if (convertpng) {
-    convert_png(resultset$hash, imagedir, htmldir)
+    convert_png_cached(resultset$hash, imagedir, htmldir)
   } else {
     file.copy(file.path(imagedir, resultset$hash),
       file.path(htmldir, paste(resultset$hash, ".pdf", sep="")))

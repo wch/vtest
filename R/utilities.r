@@ -39,6 +39,27 @@ zero_pdf_date <- function(infile = NULL, outfile = NULL) {
   close(outfile_fd)
 }
 
+# This converts files to PNG, making use of a temporary PNG cache.
+# It assumes the file name is a cryptographic hash of the contents --
+# that is, each different filename has unique content, and vice versa.
+convert_png_cached <- function(filenames, indir = NULL, outdir = NULL, method = "ghostscript") {
+  if (length(filenames) == 0) return()
+  if (any(dirname(filenames) != "."))
+    stop("filenames must not have a leading path")
+
+  cachedir <- file.path(tempdir(), "pngcache")
+  if (!file.exists(cachedir))  dir.create(cachedir)
+  allcached <- sub("\\.png$", "", dir(cachedir))
+
+  cached   <- filenames[ (filenames %in% allcached)]
+  uncached <- filenames[!(filenames %in% allcached)]
+
+  message(length(filenames), " PNG files requested. ", length(cached), " already in PNG cache.")
+  convert_png(uncached, indir, cachedir, method)
+
+  file.copy(file.path(cachedir, paste(filenames, ".png", sep = "")), outdir)
+}
+
 
 # Generate the PNG images for a directory
 convert_png <- function(filenames, indir = NULL, outdir = NULL, method = "ghostscript") {
