@@ -170,7 +170,7 @@ systemCall <- function(commands, args = character(), stdin = "", input = NULL,
   tempfile_fd <- file(tempfile, "r")
   output <- readChar(tempfile_fd, 1048576)  # Max 1MB from stdout/stderr
   close(tempfile_fd)
-  unlink(tempfile_fd)
+  unlink(tempfile)
 
   # Return to the starting directory
   if (!is.null(rundir))  setwd(startdir)

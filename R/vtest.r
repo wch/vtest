@@ -246,6 +246,8 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   # Rename file to hash and move to lasttest_dir
   if (!file.exists(file.path(get_vtest_lasttest_dir(), filehash)))
     file.rename(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
+  else
+    unlink(cleanpdf)
 
   # Append the info for this test in the vis_info list
   append_vtest_resultset(context = get_vcontext(), desc = desc,
