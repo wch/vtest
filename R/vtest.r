@@ -11,7 +11,7 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
     stop("Visual test script directory does not exist", get_vtest_dir())
 
   if (showhelp)
-    message("Saving test results to directory ", get_vtest_resultdir())
+    message("Using test results directory ", get_vtest_resultdir())
 
   if (!file.exists(get_vtest_resultdir())) {
     resp <- readline(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) "))
@@ -42,7 +42,7 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   resultset_hash <- hash_resultset(get_vtest_resultset())
 
   # Always save results to last_resultset.csv
-  message("Saving result set to lasttest/resultset.csv")
+  message("Saving resultset to ", get_vtest_lasttest_resultset_file())
   write.csv(cbind(resultset_hash, get_vtest_resultset()),
             get_vtest_lasttest_resultset_file(), row.names = FALSE)
 
