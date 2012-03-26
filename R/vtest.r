@@ -51,12 +51,9 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   else
     message("Did not run the entire set of tests, so the results can't be added to the database.")
 
-  save_last_resultset()
-
-
   if (showhelp) {
-    message(
-"Run vtest_webpage() to generate web pages for viewing tests.
+    message("
+Run vtest_webpage() to generate web pages for viewing tests.
 Run vdiffstat() to see what files have changed.
 Run vdiff_webpage() to generate web pages comparing results to those for another
 commit in the ", get_vtest_pkg()$package, " repository. (Hide this message with showhelp=FALSE.)")
