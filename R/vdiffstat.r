@@ -23,7 +23,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     ti2 <- load_lastresultset()
   } else {
     ref2text <- ref2
-    ref2h <- git_find_commit_hash(get_vtest_pkg()$path$path, ref2)
+    ref2h <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
     ti2 <- load_resultset(commit = ref2h)
   }
 

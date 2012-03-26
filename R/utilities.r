@@ -184,16 +184,6 @@ git_check_clean <- function(dir = ".") {
   }
 }
 
-#TODO Move me
-find_default_resultdir <- function(pkg = NULL) {
-  pkg <- as.package(pkg)
-
-  # Default output directory would be ggplot2/../ggplot2-vtest
-  p <- strsplit(pkg$path, "/")[[1]]
-  paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")), collapse="/")
-}
-
-
 # Get the resultset table for a given commit or resultset_hash
 load_resultset <- function(commit = NULL, resultset_hash = NULL) {
   if (is.null(commit) && is.null(resultset_hash))
