@@ -47,7 +47,7 @@ convert_png_cached <- function(filenames, indir = NULL, outdir = NULL, method = 
   if (any(dirname(filenames) != "."))
     stop("filenames must not have a leading path")
 
-  cachedir <- file.path(tempdir(), "pngcache")
+  cachedir <- file.path(get_vtest_resultdir(), "pngcache")
   if (!file.exists(cachedir))  dir.create(cachedir)
   allcached <- sub("\\.png$", "", dir(cachedir))
 

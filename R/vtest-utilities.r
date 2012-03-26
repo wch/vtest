@@ -39,8 +39,8 @@ local({
   get_vtest_htmldir  <<- function() file.path(resultdir, "html")
   get_vtest_diffdir  <<- function() file.path(resultdir, "diff")
 
-  get_vtest_lasttest_dir <<- function() file.path(tempdir(), "lasttest")
-  get_vtest_lasttest_resultset_file <<- function() file.path(tempdir(), "lasttest", "resultset.csv")
+  get_vtest_lasttest_dir <<- function() file.path(resultdir, "lasttest")
+  get_vtest_lasttest_resultset_file <<- function() file.path(resultdir, "lasttest", "resultset.csv")
 
   # These are used by each test script
   get_vcontext <<- function() context
