@@ -3,32 +3,28 @@
 # * showall: if FALSE, don't return Unchanged; if true TRUE, return Unchanged
 #     (in addition to everything else)
 #' @export
-vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
-                      resultdir = NULL, all = FALSE) {
-  pkg <- as.package(pkg)
-
-  if (is.null(resultdir))
-    resultdir <- find_default_resultdir()
+vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
+  set_vtest_pkg(pkg)
 
   # Get the resultset data for ref1 and ref2
   if (ref1 == "") {
     ref1text <- "last local test"
     ref1h <- ""
-    ti1 <- load_lastresultset(resultdir = resultdir)
+    ti1 <- load_lastresultset(resultdir = get_vtest_resultdir())
   } else {
     ref1text <- ref1
-    ref1h <- git_find_commit_hash(pkg$path, ref1)
-    ti1 <- load_resultset(commit = ref1h, resultdir = resultdir)
+    ref1h <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
+    ti1 <- load_resultset(commit = ref1h, resultdir = get_vtest_resultdir())
   }
 
   if (ref2 == "") {
     ref2text <- "last local test"
     ref2h <- ""
-    ti2 <- load_lastresultset(resultdir = resultdir)
+    ti2 <- load_lastresultset(resultdir = get_vtest_resultdir())
   } else {
     ref2text <- ref2
-    ref2h <- git_find_commit_hash(pkg$path, ref2)
-    ti2 <- load_resultset(commit = ref2h, resultdir = resultdir)
+    ref2h <- git_find_commit_hash(get_vtest_pkg()$path$path, ref2)
+    ti2 <- load_resultset(commit = ref2h, resultdir = get_vtest_resultdir())
   }
 
   # Keep just a few columns

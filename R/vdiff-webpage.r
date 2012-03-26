@@ -6,27 +6,20 @@
 # Make visual diff from two refs
 #' @export
 vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
-      resultdir = NULL, convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
+      convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
   # TODO: message about weird color space in conversion using convert
   # TODO: print message about png option, and slow png vs safari-only pdf
+  set_vtest_pkg(pkg)
 
-  pkg <- as.package(pkg)
-
-  if (is.null(resultdir))
-    resultdir <- find_default_resultdir()
-
-  diffdir  <- file.path(resultdir, "diff")
-  imagedir <- file.path(resultdir, "images")
-
-  if (!file.exists(diffdir))
-    dir.create(diffdir, recursive = TRUE)
+  if (!file.exists(get_vtest_diffdir()))
+    dir.create(get_vtest_diffdir(), recursive = TRUE)
   else
-    unlink(dir(diffdir, full.names = TRUE))
+    unlink(dir(get_vtest_diffdir(), full.names = TRUE))
 
   # TODO: Copy css file?
 
   # Get the changes
-  vdiff <- vdiffstat(ref1, ref2, pkg, filter, resultdir, all = TRUE)
+  vdiff <- vdiffstat(ref1, ref2, get_vtest_pkg(), filter, all = TRUE)
 
 
   if (ref1 == "") {
@@ -34,21 +27,21 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
     commit1 <- "NA"
   } else {
     ref1text <- ref1
-    commit1 <- git_find_commit_hash(pkg$path, ref1)
+    commit1 <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
   }
   if (ref2 == "") {
     ref2text <- "last local test"
     commit2 <- "NA"
   } else {
     ref2text <- ref2
-    commit2 <- git_find_commit_hash(pkg$path, ref2)
+    commit2 <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
   }
 
-  make_vdiff_indexpage(vdiff, ref1text, ref2text, commit1, commit2, diffdir)
+  make_vdiff_indexpage(vdiff, ref1text, ref2text, commit1, commit2, get_vtest_diffdir())
 
   for (context in unique(vdiff$context)) {
     make_vdiff_contextpage(vdiff, context, ref1text, ref2text, commit1, commit2,
-                           diffdir, imagedir, convertpng, method = method)
+                           get_vtest_diffdir(), get_vtest_imagedir(), convertpng, method = method)
   }
 
   invisible()
