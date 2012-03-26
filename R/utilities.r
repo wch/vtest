@@ -191,6 +191,9 @@ load_resultset <- function(commit = NULL, resultset_hash = NULL) {
   if (!is.null(commit)) {
     commits <- read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
     resultset_hash <- commits$resultset_hash[commits$commit == commit]
+
+    if (length(resultset_hash) > 1)
+      stop("More than one resultset_hash found for commit ", commit)
   }
 
   return(resultsets[resultsets$resultset_hash == resultset_hash, ])

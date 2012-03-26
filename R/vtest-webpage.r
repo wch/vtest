@@ -17,15 +17,18 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
   copy_css(get_vtest_htmldir())
 
   if (ref == "") {
+    imagedir <- get_vtest_lasttest_dir()
     reftext <- "last local test"
     commit <- "NA"
     resultset <- load_lastresultset()
-    imagedir <- get_vtest_lasttest_dir()
   } else {
+    imagedir <- get_vtest_imagedir()
+
     reftext <- ref
     commit <- git_find_commit_hash(get_vtest_pkg()$path, ref)
     resultset <- load_resultset(commit)
-    imagedir <- get_vtest_imagedir()
+    if (nrow(resultset) == 0)
+      stop("No resultset found for ref ", ref, ", commit ", commit)
   }
 
   # Filter results
