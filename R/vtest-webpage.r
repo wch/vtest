@@ -17,11 +17,11 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
   if (ref == "") {
     reftext <- "last local test"
     commit <- "NA"
-    resultset <- load_lastresultset(get_vtest_resultdir())
+    resultset <- load_lastresultset()
   } else {
     reftext <- ref
-    commit <- git_find_commit_hash(pkg$path, ref)
-    resultset <- load_resultset(commit, get_vtest_resultdir())
+    commit <- git_find_commit_hash(get_vtest_pkg()$path, ref)
+    resultset <- load_resultset(commit)
   }
 
   # Filter results

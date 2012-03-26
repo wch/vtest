@@ -184,7 +184,7 @@ git_check_clean <- function(dir = ".") {
   }
 }
 
-
+#TODO Move me
 find_default_resultdir <- function(pkg = NULL) {
   pkg <- as.package(pkg)
 
@@ -195,17 +195,16 @@ find_default_resultdir <- function(pkg = NULL) {
 
 
 # Get the resultset table for a given commit or resultset_hash
-load_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NULL) {
-  if (is.null(resultdir))  stop("resultdir must be specified.")
+load_resultset <- function(commit = NULL, resultset_hash = NULL) {
   if (is.null(commit) && is.null(resultset_hash))
     stop("Must specify either commit or resultset_hash.")
   else if (!is.null(commit) && !is.null(resultset_hash))
     stop("Must specify one of commit or resultset_hash, not both.")
 
-  resultsets <- read.csv(file.path(resultdir, "resultsets.csv"), stringsAsFactors = FALSE)
+  resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
 
   if (!is.null(commit)) {
-    commits <- read.csv(file.path(resultdir, "commits.csv"), stringsAsFactors = FALSE)
+    commits <- read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
     resultset_hash <- commits$resultset_hash[commits$commit == commit]
   }
 
@@ -214,9 +213,8 @@ load_resultset <- function(commit = NULL, resultset_hash = NULL, resultdir = NUL
 
 
 # Get the resultset table for the last test run
-load_lastresultset <- function(resultdir = NULL) {
-  if (is.null(resultdir))  stop("resultdir must be specified.")
-  return(read.csv(file.path(resultdir, "last_resultset.csv"), stringsAsFactors = FALSE))
+load_lastresultset <<- function() {
+  return(read.csv(get_vtest_lasttest_resultset_file(), stringsAsFactors = FALSE))
 }
 
 
