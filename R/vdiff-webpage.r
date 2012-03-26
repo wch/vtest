@@ -81,9 +81,9 @@ template <- '
 {{#value}}
     <tr>
       <td class="context"><a href="{{context}}.html"}>{{context}}</a></td>
-      <td class="num">{{C}}</td>
-      <td class="num">{{A}}</td>
-      <td class="num">{{D}}</td>
+      <td class="{{C_class}}">{{C}}</td>
+      <td class="{{A_class}}">{{A}}</td>
+      <td class="{{D_class}}">{{D}}</td>
       <td class="num">{{Total}}</td>
     </tr>
 {{/value}}
@@ -93,9 +93,9 @@ template <- '
 {{#vdtotal}}
     <tr>
       <td class="total">Total</td>
-      <td class="num">{{C}}</td>
-      <td class="num">{{A}}</td>
-      <td class="num">{{D}}</td>
+      <td class="{{C_class}}">{{C}}</td>
+      <td class="{{A_class}}">{{A}}</td>
+      <td class="{{D_class}}">{{D}}</td>
       <td class="num">{{Total}}</td>
     </tr>
 {{/vdtotal}}
@@ -109,6 +109,11 @@ template <- '
   vds <- ddply(vdiff, .(context, status), summarise, n = length(status), .drop=FALSE)
   vds <- dcast(vds, context ~ status, value.var = "n")
   vds$Total <- vds$C + vds$A + vds$D + vds$U  # Total for each context
+  # css classes for warning and error cells
+  vds$C_class <- ifelse(vds$C == 0, "num", "changed")
+  vds$A_class <- ifelse(vds$A == 0, "num", "changed")
+  vds$D_class <- ifelse(vds$D == 0, "num", "changed")
+
   vds <- split(vds, 1:nrow(vds))
   vds <- iteratelist(vds)
 
@@ -116,6 +121,10 @@ template <- '
   vdtotal <- ddply(vdiff, .(status), summarise, n = length(status), .drop=FALSE)
   vdtotal <- dcast(vdtotal, 1 ~ status, value.var = "n")
   vdtotal$Total <- vdtotal$C + vdtotal$A + vdtotal$D + vdtotal$U
+  # css classes for warning and error cells
+  vdtotal$C_class <- ifelse(vdtotal$C == 0, "num", "changed")
+  vdtotal$A_class <- ifelse(vdtotal$A == 0, "num", "changed")
+  vdtotal$D_class <- ifelse(vdtotal$D == 0, "num", "changed")
 
   write(whisker.render(template), htmlfile, append = TRUE)
 }
@@ -190,9 +199,9 @@ template <-
   <tbody>
 {{#vstat}}
     <tr>
-      <td class="num">{{C}}</td>
-      <td class="num">{{A}}</td>
-      <td class="num">{{D}}</td>
+      <td class="{{C_class}}">{{C}}</td>
+      <td class="{{A_class}}">{{A}}</td>
+      <td class="{{D_class}}">{{D}}</td>
       <td class="num">{{Total}}</td>
     </tr>
 {{/vstat}}
@@ -233,6 +242,13 @@ template <-
                 D = sum(vdiff$status == "D"),
                 U = sum(vdiff$status == "U"),
                 Total = nrow(vdiff))
+
+  # css classes for warning and error cells
+  vstat$C_class <- ifelse(vstat$C == 0, "num", "changed")
+  vstat$A_class <- ifelse(vstat$A == 0, "num", "changed")
+  vstat$D_class <- ifelse(vstat$D == 0, "num", "changed")
+
+
 
   vditems <- lapply(split(vdiff, 1:nrow(vdiff)), item_prep, ref1text, ref2text, convertpng)
   vditems <- iteratelist(vditems)

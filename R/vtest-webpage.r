@@ -54,12 +54,16 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
   <thead><tr>
     <th>Context</th>
     <th>Tests</th>
+    <th>Warnings</th>
+    <th>Errors</th>
   </tr></thead>
 {{#vts}}
 {{#value}}
     <tr>
       <td class="context"><a href="{{context}}.html">{{context}}</a></td>
       <td class="num">{{n}}</td>
+      <td class="{{warn_class}}">{{nwarn}}</td>
+      <td class="{{error_class}}">{{nerror}}</td>
     </tr>
 {{/value}}
 {{/vts}}
@@ -68,6 +72,8 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
     <tr>
       <td class="total">Total</td>
       <td class="num">{{total}}</td>
+      <td class="{{warn_class}}">{{totalwarn}}</td>
+      <td class="{{error_class}}">{{totalerror}}</td>
     </tr>
   </tfoot>
 </table>
@@ -76,10 +82,22 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
 '
 
   # Get contexts and counts
-  vts <- ddply(resultset, .(context), summarise, n = length(context))
+  vts <- ddply(resultset, .(context), summarise, n = length(context),
+           nwarn = sum(err=="warn"), nerror = sum(err=="error"))
+  # css classes for warning and error cells
+  vts$warn_class  <- ifelse(vts$nwarn > 0,  "warn", "num")
+  vts$error_class <- ifelse(vts$nerror > 0, "error", "num")
+
   vts <- split(vts, 1:nrow(vts))
   vts <- iteratelist(vts)
-  total <- nrow(resultset)  # Total number of tests
+
+
+  # Stuff for the Total row
+  total      <- nrow(resultset)              # Total number of tests
+  totalwarn  <- sum(resultset$err == "warn") # Total number of warnings
+  totalerror <- sum(resultset$err == "error")  # Total number of errors
+  warn_class  <- ifelse(totalwarn > 0, "warn", "num")
+  error_class <- ifelse(totalwarn > 0, "error", "num")
 
   whisker.render(template)
 
@@ -117,7 +135,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
 
 {{#vtitems}}
 {{#value}}
-<div class="float">
+<div class="float"><div class="{{err}}">
   <div class="header">
     <p class="description">{{desc}}</p>
   </div>
@@ -125,9 +143,10 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
     <span class="imagewrap">
       <div class="image"><img src="{{file}}"></div>
       <div class="hash">{{hash}}</div>
+      <div>{{err}}</div>
     </span>
   </div>
-</div>
+</div></div>
 {{/value}}
 {{/vtitems}}
 
@@ -140,7 +159,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
     if (convertpng) file <- paste(t$hash, "png", sep=".")
     else            file <- paste(t$hash, t$type , sep=".")
 
-    data.frame(desc = t$desc, file, hash = t$hash)
+    data.frame(desc = t$desc, file, hash = t$hash, err = t$err)
   }
 
   vtitems <- lapply(split(resultset, 1:nrow(resultset)), item_prep)

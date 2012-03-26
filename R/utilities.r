@@ -203,7 +203,7 @@ load_resultset <- function(commit = NULL, resultset_hash = NULL) {
 
 
 # Get the resultset table for the last test run
-load_lastresultset <<- function() {
+load_lastresultset <- function() {
   return(read.csv(get_vtest_lasttest_resultset_file(), stringsAsFactors = FALSE))
 }
 
