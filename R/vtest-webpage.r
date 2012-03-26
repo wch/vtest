@@ -45,46 +45,6 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
 make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit = "") {
   if (is.null(htmldir))  stop("Need to specify htmldir")
 
-  template <- '
-<html><head>
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-<title>Visual tests</title></head>
-<body>
-<h1>Visual tests</h1>
-<h2>Results for <span class="refspec">{{reftext}}</span></h2>
-<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
-
-<table>
-  <thead><tr>
-    <th>Context</th>
-    <th>Tests</th>
-    <th>Warnings</th>
-    <th>Errors</th>
-  </tr></thead>
-{{#vts}}
-{{#value}}
-    <tr>
-      <td class="context"><a href="{{context}}.html">{{context}}</a></td>
-      <td class="num">{{n}}</td>
-      <td class="{{warn_class}}">{{nwarn}}</td>
-      <td class="{{error_class}}">{{nerror}}</td>
-    </tr>
-{{/value}}
-{{/vts}}
-  </tbody>
-  <tfoot>
-    <tr>
-      <td class="total">Total</td>
-      <td class="num">{{total}}</td>
-      <td class="{{warn_class}}">{{totalwarn}}</td>
-      <td class="{{error_class}}">{{totalerror}}</td>
-    </tr>
-  </tfoot>
-</table>
-</body>
-</html>
-'
-
   # Get contexts and counts
   vts <- ddply(resultset, .(context), summarise, n = length(context),
            nwarn = sum(err=="warn"), nerror = sum(err=="error"))
@@ -95,19 +55,19 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
   vts <- split(vts, 1:nrow(vts))
   vts <- iteratelist(vts)
 
+  # List with data for the template
+  data <- list(vts = vts)
 
   # Stuff for the Total row
-  total      <- nrow(resultset)              # Total number of tests
-  totalwarn  <- sum(resultset$err == "warn") # Total number of warnings
-  totalerror <- sum(resultset$err == "error")  # Total number of errors
-  warn_class  <- ifelse(totalwarn > 0, "warn", "num")
-  error_class <- ifelse(totalwarn > 0, "error", "num")
-
-  whisker.render(template)
+  data$total      <- nrow(resultset)              # Total number of tests
+  data$totalwarn  <- sum(resultset$err == "warn") # Total number of warnings
+  data$totalerror <- sum(resultset$err == "error")  # Total number of errors
+  data$warn_class  <- ifelse(data$totalwarn > 0, "warn", "num")
+  data$error_class <- ifelse(data$totalwarn > 0, "error", "num")
 
   htmlfile <- file.path(normalizePath(htmldir), "index.html")
   message("Writing ", htmlfile)
-  write(whisker.render(template), htmlfile)
+  render_template('vtest-index', data, htmlfile)
 }
 
 
@@ -125,39 +85,6 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
   if (length(context) != 1)
     stop("There is not exactly one context in this subset: ", context)
 
-  htmlfile <- file.path(normalizePath(htmldir), paste(context, "html", sep="."))
-  message("Writing ", htmlfile)
-
-  template <- '
-<html><head>
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-<title>Visual tests: {{context}}</title></head>
-<body>
-<h1>Visual tests: {{context}}</h1>
-<h2>Results for <span class="refspec">{{reftext}}</span></h2>
-<p>Commit: <span class="smallrefspec">{{commit}}</span></p>
-
-{{#vtitems}}
-{{#value}}
-<div class="float"><div class="{{err}}">
-  <div class="header">
-    <p class="description">{{desc}}</p>
-  </div>
-  <div class="imageset">
-    <span class="imagewrap">
-      <div class="image"><img src="{{file}}"></div>
-      <div class="hash">{{hash}}</div>
-      <div>{{err}}</div>
-    </span>
-  </div>
-</div></div>
-{{/value}}
-{{/vtitems}}
-
-</body>
-</html>
-'
-
   # Prepare info for a single test
   item_prep <- function(t) {
     if (convertpng) file <- paste(t$hash, "png", sep=".")
@@ -169,14 +96,19 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
   vtitems <- lapply(split(resultset, 1:nrow(resultset)), item_prep)
   vtitems <- iteratelist(vtitems)
 
-  write(whisker.render(template), htmlfile)
+  # List with data for the template
+  data <- list(vtitems = vtitems)
+
+  htmlfile <- file.path(normalizePath(htmldir), str_c(context, ".html"))
+  message("Writing ", htmlfile)
+  render_template('vtest-context', data, htmlfile)
 
 
   if (convertpng) {
     convert_png_cached(resultset$hash, imagedir, htmldir)
   } else {
     file.copy(file.path(imagedir, resultset$hash),
-      file.path(htmldir, paste(resultset$hash, ".pdf", sep="")))
+      file.path(htmldir, str_c(resultset$hash, ".pdf")))
   }
 
   return(htmlfile)
