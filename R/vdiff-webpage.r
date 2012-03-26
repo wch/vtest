@@ -16,7 +16,7 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   else
     unlink(dir(get_vtest_diffdir(), full.names = TRUE))
 
-  # TODO: Copy css file?
+  copy_css(get_vtest_diffdir())
 
   # Get the changes
   vdiff <- vdiffstat(ref1, ref2, get_vtest_pkg(), filter, all = TRUE)
@@ -60,7 +60,7 @@ make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "",
 template <- '
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 <title>Visual test diffs</title>
 </head>
 <body>
@@ -181,7 +181,7 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 template <-
 '<html>
 <head>
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 <title>Visual tests diffs: {{context}}</title>
 </head>
 <body>

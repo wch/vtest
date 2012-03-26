@@ -216,3 +216,25 @@ hash_resultset <- function(t) {
 
   digest(t)
 }
+
+
+
+# Adapted from staticdocs
+copy_css <- function(base_path) {
+  css <- file.path(inst_path(), "css")
+  file.copy(dir(css, full.names = TRUE), base_path, recursive = TRUE)
+}
+
+# Borrowed this from staticdocs
+inst_path <- function() {
+  srcref <- attr(vtest, "srcref")
+
+  if (is.null(srcref)) {
+    # Probably in package
+    system.file(package = "vtest")
+  } else {
+    # Probably in development
+    file.path(dirname(dirname(attr(srcref, "srcfile")$filename)),
+      "inst")
+  }
+}

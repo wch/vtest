@@ -14,6 +14,8 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
   else
     unlink(dir(get_vtest_htmldir(), full.names = TRUE))
 
+  copy_css(get_vtest_htmldir())
+
   if (ref == "") {
     reftext <- "last local test"
     commit <- "NA"
@@ -45,7 +47,7 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
 
   template <- '
 <html><head>
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 <title>Visual tests</title></head>
 <body>
 <h1>Visual tests</h1>
@@ -128,7 +130,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
 
   template <- '
 <html><head>
-<link rel="stylesheet" type="text/css" href="../style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 <title>Visual tests: {{context}}</title></head>
 <body>
 <h1>Visual tests: {{context}}</h1>
