@@ -4,13 +4,11 @@
 
 
 # Make visual diff from two refs
-# TODO: Create overall index file, with status
 #' @export
 vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
       resultdir = NULL, convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
   # TODO: message about weird color space in conversion using convert
   # TODO: print message about png option, and slow png vs safari-only pdf
-  # TODO: display filename if it differs from hash
 
   pkg <- as.package(pkg)
 

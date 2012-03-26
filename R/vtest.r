@@ -1,6 +1,7 @@
 # Set the context of the visual tests
 
 init_vtest <- NULL
+set_vtest_pkg <- NULL
 get_vtest_pkg <- NULL
 get_vtest_dir <- NULL
 get_vtest_resultdir <- NULL
@@ -49,14 +50,7 @@ local({
   }
 
   init_vtest <<- function(pkg, testdir = NULL, resultdir = NULL) {
-    parent <- parent.env(environment())  # This is where the variables are
-    parent$pkg <- pkg
-
-    if (is.null(resultdir))  parent$resultdir <- find_default_resultdir(pkg)
-    else                     parent$resultdir <- resultdir
-    
-    if (is.null(testdir))  parent$testdir <- file.path(pkg$path, "visual_test")
-    else                   parent$testdir <- testdir
+    set_vtest_pkg(pkg)
 
     # Close context, if open
     if (!is.null(get_vcontext())) set_vcontext(NULL)
@@ -64,8 +58,21 @@ local({
     # Create a zero-row data frame to hold resultset
     cols <- c("context", "desc", "type", "width", "height", "dpi", "err",
               "hash", "order")
-    resultset <<- setNames(data.frame(t(rep(NA, length(cols)))), cols)
-    resultset <<- resultset[-1, ]
+    resultset <- setNames(data.frame(t(rep(NA, length(cols)))), cols)
+    parent <- parent.env(environment())  # This is where the variables are
+    parent$resultset <- resultset[-1, ]
+  }
+
+  set_vtest_pkg <<- function(pkg) {
+    parent <- parent.env(environment())  # This is where the variables are
+    pkg <- as.package(pkg)
+    parent$pkg <- pkg
+
+    if (is.null(resultdir))  parent$resultdir <- find_default_resultdir(pkg)
+    else                     parent$resultdir <- resultdir
+    
+    if (is.null(testdir))  parent$testdir <- file.path(pkg$path, "visual_test")
+    else                   parent$testdir <- testdir
   }
 
   get_vtest_resultset <<- function() resultset
@@ -137,11 +144,6 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
 #      "(Hide this message with showhelp=FALSE.)")
 #  }
 
-
-  # ============ Hash resultset and save to lasttest/resultset.csv ===========
-
-  # If running the full battery of tests, then we can hash the entire test set
-  # and compare it to the test set table
   resultset_hash <- hash_resultset(get_vtest_resultset())
 
   # Always save results to last_resultset.csv
@@ -155,7 +157,6 @@ vtest <- function(pkg = NULL, filter = "", resultdir = NULL, showhelp = TRUE) {
     message("Did not run the entire set of tests, so the results can't be added to the database.")
 
     save_last_resultset()
-
 }
 
 

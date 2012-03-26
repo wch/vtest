@@ -6,38 +6,31 @@
 # * outdir: the output directory
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 #' @export
-vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
-    convertpng = TRUE) {
-  pkg <- as.package(pkg)
+vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) {
+  if(!is.null(pkg))  set_vtest_pkg(pkg)
 
-  if (is.null(resultdir))
-    resultdir <- find_default_resultdir()
-
-  htmldir  <- file.path(resultdir, "html")
-  imagedir <- file.path(resultdir, "images")
-
-  if (!file.exists(htmldir))
-    dir.create(htmldir, recursive = TRUE)
+  if (!file.exists(get_vtest_htmldir()))
+    dir.create(get_vtest_htmldir(), recursive = TRUE)
   else
-    unlink(dir(htmldir, full.names = TRUE))
+    unlink(dir(get_vtest_htmldir(), full.names = TRUE))
 
   if (ref == "") {
     reftext <- "last local test"
     commit <- "NA"
-    resultset <- load_lastresultset(resultdir)
+    resultset <- load_lastresultset(get_vtest_resultdir())
   } else {
     reftext <- ref
     commit <- git_find_commit_hash(pkg$path, ref)
-    resultset <- load_resultset(commit, resultdir)
+    resultset <- load_resultset(commit, get_vtest_resultdir())
   }
 
   # Filter results
   resultset <- resultset[match_filter_idx(resultset$context, filter), ]
 
-  make_vtest_indexpage(resultset, htmldir, reftext, commit)
+  make_vtest_indexpage(resultset, get_vtest_htmldir(), reftext, commit)
 
   ddply(resultset, .(context), .fun = function(ti) {
-      make_vtest_contextpage(ti, htmldir, imagedir, reftext, commit, convertpng)
+      make_vtest_contextpage(ti, get_vtest_htmldir(), get_vtest_imagedir(), reftext, commit, convertpng)
   })
 
   invisible()
@@ -46,6 +39,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, resultdir = NULL, filter = "",
 
 # Makes the overall index web page
 make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit = "") {
+  if (is.null(htmldir))  stop("Need to specify htmldir")
 
   template <- '
 <html><head>
