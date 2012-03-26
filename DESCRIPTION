@@ -20,3 +20,4 @@ Collate:
     'vdiffstat.r'
     'vtest-webpage.r'
     'vtest.r'
+    'vtest-utilities.r'
