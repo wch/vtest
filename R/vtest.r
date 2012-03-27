@@ -147,6 +147,7 @@ save_last_resultset <- function(prompt = TRUE) {
            "\nThis indicates a problem with the resultsets database.")
 
     message("Hash matches! No need to add this resultset to database.")
+    write_resultset <- FALSE
 
   } else {
     message("Did not find existing resultset with matching hash: ", resultset_hash)
