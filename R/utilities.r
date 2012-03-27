@@ -51,6 +51,7 @@ convert_png_cached <- function(filenames, indir = NULL, outdir = NULL, method = 
   if (!file.exists(cachedir))  dir.create(cachedir)
   allcached <- sub("\\.png$", "", dir(cachedir))
 
+  filenames <- unique(filenames)
   cached   <- filenames[ (filenames %in% allcached)]
   uncached <- filenames[!(filenames %in% allcached)]
 
