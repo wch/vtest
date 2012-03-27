@@ -16,10 +16,13 @@ Imports:
     stringr
 License: MIT
 Collate:
-    'utilities.r'
     'vdiff-webpage.r'
     'vdiffstat.r'
     'vtest-webpage.r'
     'vtest.r'
-    'vtest-utilities.r'
     'render.r'
+    'database.r'
+    'git.r'
+    'image-utils.r'
+    'utils.r'
+    'vtest-utils.r'
