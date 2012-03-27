@@ -150,7 +150,7 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
   vditems <- iteratelist(vditems)
 
   # List with data for the template
-  data <- list(vstat = vstat, vditems = vditems,
+  data <- list(vstat = vstat, vditems = vditems, context = context,
     ref1text = ref1text, ref2text = ref2text,
     commit1 = commit1, commit2 = commit2)
 

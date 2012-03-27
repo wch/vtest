@@ -100,7 +100,8 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
   vtitems <- iteratelist(vtitems)
 
   # List with data for the template
-  data <- list(vtitems = vtitems, reftext = reftext, commit = commit)
+  data <- list(vtitems = vtitems, reftext = reftext, commit = commit,
+    context = context)
 
   htmlfile <- file.path(normalizePath(htmldir), str_c(context, ".html"))
   message("Writing ", htmlfile)
