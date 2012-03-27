@@ -220,6 +220,20 @@ hash_resultset <- function(t) {
   digest(t)
 }
 
+# Print a prompt and ask for confirmation
+confirm <- function(prompt = "", confirm = "y", ignoreLF = TRUE, ignorecase = TRUE) {
+  resp <- readline(prompt)
+  while (ignoreLF && resp == "")
+    resp <- readline(prompt)
+
+  if (resp == confirm)
+    return(TRUE)
+  else if (ignorecase && tolower(resp) == tolower(confirm))
+    return(TRUE)
+  else
+    return(FALSE)
+}
+
 
 
 # Adapted from staticdocs

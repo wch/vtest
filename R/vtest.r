@@ -14,15 +14,13 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
     message("Using test results directory ", get_vtest_resultdir())
 
   if (!file.exists(get_vtest_resultdir())) {
-    resp <- readline(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) "))
-    if (tolower(resp) != "y")
+    if (!confirm(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) ")))
       return(invisible())
     dir.create(get_vtest_resultdir(), recursive = TRUE, showWarnings = FALSE)
   }
 
   if (!file.exists(get_vtest_imagedir())) {
-    resp <- readline(paste(get_vtest_imagedir(), "does not exist! Create? (y/n) "))
-    if (tolower(resp) != "y")
+    if (!confirm(paste(get_vtest_imagedir(), "does not exist! Create? (y/n) ")))
       return(invisible())
     dir.create(get_vtest_imagedir(), recursive = TRUE, showWarnings = FALSE)
   }
@@ -101,8 +99,7 @@ save_last_resultset <- function(prompt = TRUE) {
     } else {
       message("For this commit, old and current resultsets do not match!\n  This may be because of changes to R, or to other packages.")
       if (prompt) {
-        reply <- readline("  Replace old results with new results in the commit table? (y/n) ")
-        if (tolower(reply) != "y")
+        if (!confirm("  Replace old results with new results in the commit table? (y/n) "))
           return(invisible())
       }
 
@@ -111,8 +108,7 @@ save_last_resultset <- function(prompt = TRUE) {
     }
   } else {
     if (prompt) {
-      reply <- readline("  Results are new. Add them to the commit table? (y/n) ")
-      if (tolower(reply) != "y")
+      if (!confirm("  Results are new. Add them to the commit table? (y/n) "))
         return(invisible())
     }
 
@@ -155,8 +151,7 @@ save_last_resultset <- function(prompt = TRUE) {
   } else {
     message("Did not find existing resultset with matching hash: ", resultset_hash)
     if (prompt) {
-      reply <- readline("  Add this resultset to the resultsets table? (y/n) ")
-      if (tolower(reply) != "y")
+      if (!confirm("  Add this resultset to the resultsets table? (y/n) "))
         return(invisible())
     }
     resultsets <- rbind(resultsets, cbind(resultset_hash, get_vtest_resultset()))
