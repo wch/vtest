@@ -1,17 +1,20 @@
 # Get the resultset table for a given commit or resultset_hash
 load_resultset <- function(commit = NULL, resultset_hash = NULL) {
-  if (is.null(commit) && is.null(resultset_hash))
-    stop("Must specify either commit or resultset_hash.")
-  else if (!is.null(commit) && !is.null(resultset_hash))
-    stop("Must specify one of commit or resultset_hash, not both.")
+  if (!is.null(commit) && !is.null(resultset_hash))
+    stop("Cannot specify both commit and resultset_hash.")
 
   resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
+
+  if (is.null(commit) && is.null(resultset_hash))
+    return(resultsets)
 
   if (!is.null(commit)) {
     commits <- read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
     resultset_hash <- commits$resultset_hash[commits$commit == commit]
 
-    if (length(resultset_hash) > 1)
+    if (length(resultset_hash) == 0)
+      stop("No resultset_hash found for commit ", commit)
+    else if (length(resultset_hash) > 1)
       stop("More than one resultset_hash found for commit ", commit)
   }
 
