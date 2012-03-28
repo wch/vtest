@@ -1,3 +1,5 @@
+# Functions that interact with the test result database
+
 # Get the resultset table for a given commit or resultset_hash
 load_resultset <- function(commit = NULL, resultset_hash = NULL) {
   if (!is.null(commit) && !is.null(resultset_hash))

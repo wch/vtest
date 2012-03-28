@@ -26,3 +26,4 @@ Collate:
     'image-utils.r'
     'utils.r'
     'vtest-utils.r'
+    'git-db.r'

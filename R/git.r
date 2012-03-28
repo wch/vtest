@@ -1,3 +1,5 @@
+# Functions that interact with the git repositor
+
 # Find the current git commit hash of a directory, given a commit ref
 git_find_commit_hash <- function(dir = ".", ref = "HEAD") {
   ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", ref))
