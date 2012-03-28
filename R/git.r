@@ -25,3 +25,24 @@ git_check_clean <- function(dir = ".") {
     stop("Error checking git working tree clean/dity status of ", dir, ":", ret$output)
   }
 }
+
+
+#' Return the last n commit hashes of a git repository
+#'
+#' @param dir  directory containing the git repository
+#' @param n  number of commit hashes to return
+#' @param start  the commit to search backward from
+#'
+#' @value a character vector of commit hashes, or an empty vector if there
+#'   was a problem executing the git command.
+git_prev_commits <- function(dir = ".", n = 10, start = "") {
+  ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "log",
+    "--format='%H'", str_c("-", n), start))
+
+  if (ret$status == 0) {
+    return(strsplit(ret$output, "\n")[[1]])
+  } else {
+    warning(ret$output)
+    return(character())
+  }
+}
