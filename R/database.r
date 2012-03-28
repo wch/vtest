@@ -38,3 +38,8 @@ hash_resultset <- function(t) {
 
   digest(t)
 }
+
+#' Load the commit-resultset_hash table
+load_commits_table <- function() {
+  read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
+}
