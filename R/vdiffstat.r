@@ -14,7 +14,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   } else {
     ref1text <- ref1
     commit1 <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
-    ti1 <- load_resultset(commit = commit1)
+    ti1 <- load_resultsets(commit = commit1)
   }
   if (nrow(ti1) == 0) {
     stop("No resultset found for ref ", ref1, ", commit ", substr(commit1, 1, 8),
@@ -29,7 +29,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   } else {
     ref2text <- ref2
     commit2 <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
-    ti2 <- load_resultset(commit = commit2)
+    ti2 <- load_resultsets(commit = commit2)
   }
   if (nrow(ti2) == 0) {
     stop("No resultset found for ref ", ref2, ", commit ", substr(commit2, 1, 6),

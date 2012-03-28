@@ -1,11 +1,15 @@
 # Functions that interact with the test result database
 
 # Get the resultset table for a given commit or resultset_hash
-load_resultset <- function(commit = NULL, resultset_hash = NULL) {
+load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
   if (!is.null(commit) && !is.null(resultset_hash))
     stop("Cannot specify both commit and resultset_hash.")
 
-  resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
+
+  if (file.exists(get_vtest_resultsets_file()))
+    resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
+  else
+    resultsets <- cbind(resultset_hash = character(), empty_resultset)
 
   if (is.null(commit) && is.null(resultset_hash))
     return(resultsets)
@@ -20,7 +24,7 @@ load_resultset <- function(commit = NULL, resultset_hash = NULL) {
       stop("More than one resultset_hash found for commit ", commit)
   }
 
-  return(resultsets[resultsets$resultset_hash == resultset_hash, ])
+  return(resultsets[resultsets$resultset_hash == resultset_hash, , drop = FALSE])
 }
 
 
@@ -46,5 +50,15 @@ hash_resultset <- function(t) {
 
 #' Load the commit-resultset_hash table
 load_commits_table <- function() {
-  read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
+  if (file.exists(get_vtest_commits_file()))
+    read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
+  else
+    data.frame(commit = character(), resultset_hash = character())
+}
+
+
+empty_resultset <- function() {
+  data.frame(context = context, desc = desc, type = type, width = width,
+          height = height, dpi = dpi, err = err, hash = hash,
+          order = context_count, stringsAsFactors = FALSE)
 }

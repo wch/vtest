@@ -72,14 +72,18 @@ commit in the ", get_vtest_pkg()$package, " repository. (Hide this message with 
 
 save_last_resultset <- function(prompt = TRUE) {
 
+  last_resultset <- load_lastresultset()
+  # Drop the hash column
+  last_resultset <- last_resultset[!(names(last_resultset) %in% "resultset_hash")]
+
   # ============ Add to commit tatble ===========
 
-  resultset_hash <- hash_resultset(get_vtest_resultset())
+  resultset_hash <- hash_resultset(last_resultset)
   message("Hash for resultset is ", resultset_hash)
 
   # Find current commit of package
   commit <- git_find_commit_hash(get_vtest_pkg()$path)
-  message("Package ", get_vtest_pkg()$package, " is at commit ", substr(commit, 1, 8))
+  message("Package ", get_vtest_pkg()$package, " is at commit ", substr(commit, 1, 6))
 
   # Check for clean working tree
   if (!git_check_clean(get_vtest_pkg()$path)) {
@@ -89,26 +93,28 @@ save_last_resultset <- function(prompt = TRUE) {
   message("Working tree state is clean, so results can be added to database.")
 
   # Read existing commit table
-  if (file.exists(get_vtest_commits_file()))
-    commitdata <- read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
-  else
-    commitdata <- data.frame()
+  commitdata <- load_commits_table()
+
+  # Assume this commit is new unles otherwise
+  commit_status <- "new"
 
   commitmatch <- commitdata[commitdata$commit == commit, ]
   if (nrow(commitmatch) > 1) {
     stop("More than one matching commit in commit table. This indicates a problem with the database.")
 
   } else if (nrow(commitmatch) == 1) {
-    message("Found existing test results for commit ", substr(commit, 1, 8), ": ",
+    message("Found existing test results for commit ", substr(commit, 1, 6), ": ",
       paste(commitmatch$resultset_hash, collapse = ", "))
 
     if (commitmatch$resultset_hash == resultset_hash) {
-      message("For this commit, old and current resulsets match! Good.")
+      message(" Old and current resulsets match! No need to add to database.")
       return(invisible())
     } else {
-      message("For this commit, old and current resultsets do not match!\n  This may be because of changes to R, or to other packages.")
+      message("  For this commit, old and current resultsets do not match!\n  This may be because of changes to R, or to other packages.")
       if (prompt) {
-        if (!confirm("  Replace old results with new results in the commit table? (y/n) "))
+        if (confirm("Replace old results with new results in the commit table? (y/n) "))
+          commit_status <- "replace"
+        else
           return(invisible())
       }
 
@@ -116,10 +122,7 @@ save_last_resultset <- function(prompt = TRUE) {
                       data.frame(commit = commit, resultset_hash = resultset_hash))
     }
   } else {
-    if (prompt) {
-      if (!confirm("  Results are new. Add them to the commit table? (y/n) "))
-        return(invisible())
-    }
+    message("  No existing resultset found for this commit. It can be added to commit table.")
 
     commitdata <- rbind(commitdata,
                     data.frame(commit = commit, resultset_hash = resultset_hash))
@@ -127,14 +130,11 @@ save_last_resultset <- function(prompt = TRUE) {
 
   # ============== Add to the resultset table ======================
 
-  # Assume that we'll write the resultset data; if certain things happen, set to FALSE
-  write_resultset <- TRUE
+  # Assume that resultset is new unless found otherwise
+  resultset_status <- "new"
 
   # Read existing test results
-  if (file.exists(get_vtest_resultsets_file()))
-    resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
-  else
-    resultsets <- data.frame(resultset_hash = character())
+  resultsets <- load_resultsets()
 
   message("Checking if this resultset is already in resultsets table...")
 
@@ -143,35 +143,53 @@ save_last_resultset <- function(prompt = TRUE) {
   #   subset(resultsets, resultset_hash == resultset_hash, select = -resultset_hash)
   # but this case is problematic for subset because of re-used var name and
   # because when there are no matches, subset returns a 1-row NA-filled data frame.
-  resultset_match <- resultsets[resultsets$resultset_hash == resultset_hash, , drop = FALSE]
+  resultset_match <- load_resultsets(resultset_hash = resultset_hash)
+  # Drop the resultset_hash column
   resultset_match <- resultset_match[!(names(resultset_match) %in% "resultset_hash")]
 
   if (nrow(resultset_match) > 0) {
     message("Found existing resultset with matching hash: ", resultset_hash)
-    message("Recalculating existing resultset hash just to make sure... ", appendLF = FALSE)
+    message("  Recalculating existing resultset hash just to make sure... ", appendLF = FALSE)
     resultset_match_hash <- hash_resultset(resultset_match)
     if (resultset_match_hash != resultset_hash)
-      stop("Re-hashing old resultset in a different hash value: ",
+      stop("  Re-hashing old resultset in a different hash value: ",
            resultset_match_hash,
            "\nThis indicates a problem with the resultsets database.")
 
-    message("Hash matches! No need to add this resultset to database.")
-    write_resultset <- FALSE
+    resultset_status <- "old"
+    message("  Hash matches! No need to add this resultset to database.")
 
   } else {
-    message("Did not find existing resultset with matching hash: ", resultset_hash)
-    if (prompt) {
-      if (!confirm("  Add this resultset to the resultsets table? (y/n) "))
-        return(invisible())
-    }
-    resultsets <- rbind(resultsets, cbind(resultset_hash, get_vtest_resultset()))
+    message("  Did not find existing resultset with this hash. It can be added to the resultsets table.")
+
+    resultsets <- rbind(resultsets, cbind(resultset_hash, last_resultset))
   }
 
+
+  if(prompt) {
+    if (commit_status == "replace" && resultset_status == "new")
+      resp <- readline("Replace commit and add new resultset to database? (y/n) ")
+    else if (commit_status == "replace" && resultset_status == "old")
+      resp <- readline("Replace commit in database? (y/n) ")
+    else if (commit_status == "new" && resultset_status == "new")
+      resp <- readline("Add new commit and new resultset to database? (y/n) ")
+    else if (commit_status == "new" && resultset_status == "old")
+      resp <- readline("Add new commit to database? (y/n) ")
+    else
+      stop("Unexpected status combination.")
+
+    if (tolower(resp) != "y") {
+      message("Changes to database not saved.")
+      return(invisible())
+    }
+  }
+
+  # TODO: modularize this part
   # If we made it this far, write to the commit and resultsets tables
-  message("Adding new commit information to commit table.")
+  message("Adding commit to commit table.")
   write.csv(commitdata, get_vtest_commits_file(), row.names = FALSE)
 
-  message("Adding new resultset to resultsets table.")
+  message("Adding resultset to resultsets table.")
   write.csv(resultsets, get_vtest_resultsets_file(), row.names = FALSE)
 
   # ============ Copy any new image files over ============

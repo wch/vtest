@@ -26,7 +26,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
 
     reftext <- ref
     commit <- git_find_commit_hash(get_vtest_pkg()$path, ref)
-    resultset <- load_resultset(commit)
+    resultset <- load_resultsets(commit = commit)
     if (nrow(resultset) == 0)
       stop("No resultset found for ref ", ref, ", commit ", commit)
   }
