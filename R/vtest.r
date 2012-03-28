@@ -1,3 +1,12 @@
+#' vtest.
+#'
+#' @name vtest
+#' @docType package
+#' @aliases vtest package-vtest
+#' @import devtools plyr digest reshape2 stringr
+NULL
+
+
 # Run visual tests
 #' @export
 vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
@@ -213,6 +222,7 @@ end_vcontext <- function() {
 # * device: string with name of output device. Only "pdf" is supported now.
 # * err: error status. ok, warn, or error
 # * hash: a hash of the file contents
+#' @importFrom ggplot2 ggsave
 #' @export
 save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "pdf") {
   if (is.null(get_vcontext()))     stop("Must have active vcontext")

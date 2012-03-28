@@ -88,6 +88,7 @@ make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "",
 
 # Make a web page with diffs between one path and another path
 # This shouldn't be called by the user - users should call vdiff_webpage()
+#' @importFrom whisker iteratelist
 make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2text = "",
     commit1 = "", commit2 = "", diffdir = NULL, imagedir = NULL, convertpng = TRUE,
     method = "ghostscript") {

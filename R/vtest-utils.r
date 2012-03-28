@@ -89,7 +89,7 @@ local({
   append_vtest_resultset <<- function(context, desc, type, width, height, dpi, err, hash, order) {
     # Check that context + description aren't already used
     if (sum(context == resultset$context & desc == resultset$desc) != 0)
-      stop(contest, ":\"", desc, "\" cannot be added to resultset because it is already present.")
+      stop(context, ":\"", desc, "\" cannot be added to resultset because it is already present.")
 
     context_count <<- context_count + 1
 
