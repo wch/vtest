@@ -18,7 +18,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   }
   if (nrow(ti1) == 0) {
     stop("No resultset found for ref ", ref1, ", commit ", substr(commit1, 1, 8),
-      "\n", recent_commit_with_resultset(commit1, 25))
+      "\n", nearest_commit_with_resultset(commit1, 25), "\n",
+      "Run recent_commits_resultsets(\"", ref1, "\") to see a list of recent commits and their resultsets.")
   }
 
   if (ref2 == "") {
@@ -32,7 +33,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   }
   if (nrow(ti2) == 0) {
     stop("No resultset found for ref ", ref2, ", commit ", substr(commit2, 1, 6),
-      "\n", recent_commit_with_resultset(commit2, 25))
+      "\n", nearest_commit_with_resultset(commit2, 25), "\n",
+      "Run recent_commits_resultsets(\"", ref2, "\") to see a list of recent commits and their resultsets.")
   }
 
   # Keep just a few columns
@@ -66,13 +68,13 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
 
 #' This function is only to be called from vdiffstat
 #'
-#' @param commit  The commit to start searching backward from
+#' @param start  The commit to start searching backward from
 #' @param n  Maximum number of commits to search
-recent_commit_with_resultset <- function(commit = "", n = 10) {
-  pcommits <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = commit)
-  ctable <- load_commits_table()
+nearest_commit_with_resultset <- function(start = "", n = 20) {
+  pcommits <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
+  c_results <- load_commits_table()
 
-  matchidx <- which(pcommits %in% ctable$commit)
+  matchidx <- which(pcommits %in% c_results$commit)
   if (length(matchidx) == 0) {
     return(str_c("No commit with a resultset found within last ", n,
       " commits"))
@@ -83,4 +85,26 @@ recent_commit_with_resultset <- function(commit = "", n = 10) {
       substr(pcommits[matchidx], 1, 6), ", found ", matchidx-1,
       " commits previous.\n"))
   }
+}
+
+
+#' Returns a data frame of recent commits and their associated resultset_hash.
+#'
+#' For commits without a resultset, the resultset_hash is NA.
+#'
+#' @param start  The commit to start searching backward from
+#' @param n  Maximum number of commits to search
+#' @export
+recent_commits_resultsets <- function(start = "", n = 20) {
+  prev <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
+  prev_commits <- data.frame(idx = seq_along(prev), commit = prev)
+
+  c_results <- load_commits_table()
+  prev_commits <- merge(prev_commits, c_results, all.x = TRUE)
+  prev_commits <- prev_commits[order(prev_commits$idx), ]
+  prev_commits$idx <- NULL
+  rownames(prev_commits) <- NULL
+  prev_commits$commit <- substr(prev_commits$commit, 1, 6)  # Short git hash
+
+  prev_commits
 }

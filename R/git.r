@@ -35,7 +35,7 @@ git_check_clean <- function(dir = ".") {
 #'
 #' @value a character vector of commit hashes, or an empty vector if there
 #'   was a problem executing the git command.
-git_prev_commits <- function(dir = ".", n = 10, start = "") {
+git_prev_commits <- function(dir = ".", n = 20, start = "") {
   ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "log",
     "--format='%H'", str_c("-", n), start))
 
