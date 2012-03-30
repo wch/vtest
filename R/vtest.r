@@ -36,6 +36,8 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
 
   if (!file.exists(get_vtest_lasttest_dir()))
     dir.create(get_vtest_lasttest_dir())
+  else
+    unlink(dir(get_vtest_lasttest_dir(), full.names = TRUE))
 
 
   # Run the test scripts
