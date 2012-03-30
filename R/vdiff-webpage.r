@@ -25,23 +25,27 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   if (ref1 == "") {
     ref1text <- "last local test"
     commit1 <- "NA"
+    imagedir <- get_vtest_lasttest_dir()
   } else {
     ref1text <- ref1
     commit1 <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
+    imagedir <- get_vtest_imagedir()
   }
   if (ref2 == "") {
     ref2text <- "last local test"
     commit2 <- "NA"
+    imagedir <- get_vtest_lasttest_dir()
   } else {
     ref2text <- ref2
     commit2 <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
+    imagedir <- get_vtest_imagedir()
   }
 
   make_vdiff_indexpage(vdiff, ref1text, ref2text, commit1, commit2, get_vtest_diffdir())
 
   for (context in unique(vdiff$context)) {
     make_vdiff_contextpage(vdiff, context, ref1text, ref2text, commit1, commit2,
-                           get_vtest_diffdir(), get_vtest_imagedir(), convertpng, method = method)
+                           get_vtest_diffdir(), imagedir, convertpng, method = method)
   }
 
   invisible()
