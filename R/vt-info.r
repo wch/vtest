@@ -43,6 +43,9 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
     if (!confirm(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) ")))
       stop("Cannot continue without creating directory for results")
     dir.create(get_vtest_resultdir(), recursive = TRUE, showWarnings = FALSE)
+
+    cat(paste("html", "diff", "lasttest", "pngcache", "", sep = "\n"),
+      file = file.path(get_vtest_resultdir(), ".gitignore"))
   }
 
   if (!file.exists(get_vtest_imagedir()))
