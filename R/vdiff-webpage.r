@@ -3,7 +3,28 @@
 # =============================================================
 
 
-# Make visual diff from two refs
+#' Generate web pages for viewing differences in test results
+#'
+#' This function is used for comparing the test results for two different
+#' commits of the package that was tested.
+#'
+#' @param ref1 a git commit ref to compare (usually this should be the older
+#'  ref)
+#' @param ref2 a git commit ref to compare (usually this should be the newer
+#'  ref). The empty string \code{""} refers to the last-run tests.
+#' @param pkg package object or path.
+#' @param filter a regular expression; result pages will be generated only
+#'   only for test contexts that match this pattern.
+#' @param convertpng if TRUE, convert the source PDFs files to PNG. Otherwise
+#'   they are kept in PDF format, and are viewable only in some browers.
+#' @param method the method for converting to PNG. Presently can be
+#'   \code{"ghostscript"} or \code{"imagemagick"}.
+#' @param prompt ask to open web page in browser.
+#'
+#' @seealso \code{\link{vdiffstat}} for a data frame of information about
+#'   changed tests.
+#' @seealso \code{\link{vtest_webpage}} for creating a web page of results for
+#'   a single commit.
 #' @export
 vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
       convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
@@ -49,7 +70,7 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
                            get_vtest_diffdir(), imagedir, convertpng, method = method)
   }
 
-  if(confirm("Open webpage in browser? (y/n) "))
+  if (prompt && confirm("Open webpage in browser? (y/n) "))
     browseURL(indexpage)
 
   invisible()

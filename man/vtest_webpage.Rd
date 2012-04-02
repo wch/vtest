@@ -1,0 +1,32 @@
+\name{vtest_webpage}
+\alias{vtest_webpage}
+\title{Generate web pages for viewing vtest results.}
+\usage{
+  vtest_webpage(ref = "", pkg = NULL, filter = "",
+    convertpng = TRUE, prompt = TRUE)
+}
+\arguments{
+  \item{ref}{a git commit ref that result pages will be
+  generated for. The empty string \code{""} refers to the
+  last-run tests.}
+
+  \item{pkg}{package object or path.}
+
+  \item{filter}{a regular expression; result pages will be
+  generated only only for test contexts that match this
+  pattern.}
+
+  \item{convertpng}{if TRUE, convert the source PDFs files
+  to PNG. Otherwise they are kept in PDF format, and are
+  viewable only in some browers.}
+
+  \item{prompt}{ask to open web page in browser.}
+}
+\description{
+  Generate web pages for viewing vtest results.
+}
+\seealso{
+  \code{\link{vdiff_webpage}} for creating a web page for
+  comparing results of tests in two different commits.
+}
+

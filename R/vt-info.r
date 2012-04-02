@@ -20,7 +20,6 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
     pkg = NULL,
     testdir = NULL,
     resultdir = NULL,
-    imagedir = NULL,
     resultset = NULL
     )
 

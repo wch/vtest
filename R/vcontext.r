@@ -21,7 +21,7 @@ local({
 })
 
 
-# Start a visual test context
+#' Start a visual test context
 #' @param context name of the context
 #' @export
 vcontext <- function(context) {
@@ -33,7 +33,7 @@ vcontext <- function(context) {
 }
 
 
-# Finish a visual test context.
+#' Finish a visual test context.
 #' @export
 end_vcontext <- function() {
   if(is.null(get_vcontext())) {

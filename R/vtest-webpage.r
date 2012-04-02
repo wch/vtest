@@ -1,12 +1,23 @@
 # =============================================================
-# Functions for generating web pages to view tests
+# Functions for generating web pages to view test results
 # =============================================================
 
-# This is the function that the user calls
-# * outdir: the output directory
-# * convertpng: if TRUE, convert the source PDFs files to PNG instead.
+#' Generate web pages for viewing vtest results.
+#'
+#' @param ref a git commit ref that result pages will be generated for. The
+#'   empty string \code{""} refers to the last-run tests.
+#' @param pkg package object or path.
+#' @param filter a regular expression; result pages will be generated only
+#'   only for test contexts that match this pattern.
+#' @param convertpng if TRUE, convert the source PDFs files to PNG. Otherwise
+#'   they are kept in PDF format, and are viewable only in some browers.
+#' @param prompt ask to open web page in browser.
+#'
+#' @seealso \code{\link{vdiff_webpage}} for creating a web page for comparing
+#'   results of tests in two different commits.
 #' @export
-vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) {
+vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE,
+      prompt = TRUE) {
   init_vtest(pkg)
 
   if (!file.exists(get_vtest_htmldir()))
@@ -40,7 +51,7 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
       make_vtest_contextpage(ti, get_vtest_htmldir(), imagedir, reftext, commit, convertpng)
   })
 
-  if(confirm("Open webpage in browser? (y/n) "))
+  if (prompt && confirm("Open webpage in browser? (y/n) "))
     browseURL(indexpage)
 
   invisible()

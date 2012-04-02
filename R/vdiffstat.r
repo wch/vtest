@@ -1,7 +1,21 @@
-# Find files modified between ref1 and ref2
-# If ref2 is "", we treat it to mean the last test results.
-# * all: if FALSE, don't return Unchanged; if true TRUE, return Unchanged
-#     (in addition to everything else)
+#' Find test results that changed between ref1 and ref2
+#'
+#' This function is used for comparing the test results for two different
+#' commits of the package that was tested.
+#'
+#' @param ref1 a git commit ref to compare (usually this should be the older
+#'  ref)
+#' @param ref2 a git commit ref to compare (usually this should be the newer
+#'  ref). The empty string \code{""} refers to the last-run tests.
+#' @param pkg package object or path.
+#' @param filter a regular expression; result pages will be generated only
+#'   only for test contexts that match this pattern.
+#' @param all if \code{TRUE}, show only Added, Deleted, and Changed test items.
+#'   If \code{FALSE}, also show Unchanged test items.
+#'
+#' @return a data frame with information about test results that changed.
+#'
+#' @seealso \code{\link{vdiff_webpage}}
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
   init_vtest(pkg)

@@ -1,0 +1,16 @@
+\name{recent_resultsets}
+\alias{recent_resultsets}
+\title{Returns a data frame of recent commits and their associated resultset_hash.}
+\usage{
+  recent_resultsets(start = "", n = 20)
+}
+\arguments{
+  \item{start}{The commit to start searching backward from}
+
+  \item{n}{Maximum number of commits to search}
+}
+\description{
+  For commits without a resultset, the resultset_hash is
+  NA.
+}
+
