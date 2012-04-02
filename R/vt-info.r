@@ -66,7 +66,7 @@ reset_lasttest <- function() {
 }
 
 get_vtest_pkg <- function() vt$pkg
-get_vtest_dir <- function() vt$testdir
+get_vtest_testdir <- function() vt$testdir
 get_vtest_resultdir <- function() vt$resultdir
 get_vtest_imagedir <- function() file.path(vt$resultdir, "images")
 get_vtest_htmldir <- function() file.path(vt$resultdir, "html")

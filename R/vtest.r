@@ -16,14 +16,14 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   init_vtest(pkg)
   reset_lasttest()
 
-  if (!file.exists(get_vtest_dir()))
-    stop("Visual test script directory does not exist", get_vtest_dir())
+  if (!file.exists(get_vtest_testdir()))
+    stop("Visual test script directory does not exist", get_vtest_testdir())
 
   if (showhelp)
     message("Using test results directory ", get_vtest_resultdir())
 
   # Run the test scripts
-  files <- dir(get_vtest_dir(), full.names = TRUE, include.dirs = FALSE)
+  files <- dir(get_vtest_testdir(), full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
   files <- match_filter(files, filter)
   files <- files[order(files)]
