@@ -4,7 +4,7 @@
 #     (in addition to everything else)
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
-  set_vtest_pkg(pkg)
+  init_vtest(pkg)
 
   # Get the resultset data for ref1 and ref2
   if (ref1 == "") {

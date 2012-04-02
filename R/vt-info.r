@@ -24,14 +24,19 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
     resultset = NULL
     )
 
-  set_vtest_pkg(pkg)
+  vt$pkg <<- as.package(pkg)
 
-  if (is.null(vt$resultdir))  {
-    # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
-    vt$resultdir <<- file.path(get_vtest_pkg()$path, "visual_test", "vtest")
-  } else {
+  # The directory where visual test scripts are stored
+  if (is.null(testdir))
+    vt$testdir <<- file.path(vt$pkg$path, "visual_test")
+  else
+    vt$testdir <<- testdir
+
+  # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
+  if (is.null(vt$resultdir))
+    vt$resultdir <<- file.path(vt$pkg$path, "visual_test", "vtest")
+  else
     vt$resultdir <<- resultdir
-  }
 
 
   # Make directories for storing results
@@ -42,26 +47,21 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
   }
 
   if (!file.exists(get_vtest_imagedir()))
-    dir.create(get_vtest_imagedir(), recursive = TRUE, showWarnings = FALSE)
+    dir.create(get_vtest_imagedir())
 
   if (!file.exists(get_vtest_lasttest_dir()))
     dir.create(get_vtest_lasttest_dir())
-  else
-    unlink(dir(get_vtest_lasttest_dir(), full.names = TRUE))
-  
-  if (is.null(testdir))  vt$testdir <<- file.path(get_vtest_pkg()$path, "visual_test")
-  else                   vt$testdir <<- testdir
 
   # Create a zero-row data frame to hold resultset
   vt$resultset <<- empty_resultset()
+
+  invisible()
 }
 
 
-set_vtest_pkg <- function(pkg) {
-  pkg <- as.package(pkg)
-  vt$pkg <<- pkg
+reset_lasttest <- function() {
+  unlink(dir(get_vtest_lasttest_dir(), full.names = TRUE))
 }
-
 
 get_vtest_pkg <- function() vt$pkg
 get_vtest_dir <- function() vt$testdir

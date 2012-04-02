@@ -7,7 +7,7 @@
 # * convertpng: if TRUE, convert the source PDFs files to PNG instead.
 #' @export
 vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) {
-  set_vtest_pkg(pkg)
+  init_vtest(pkg)
 
   if (!file.exists(get_vtest_htmldir()))
     dir.create(get_vtest_htmldir(), recursive = TRUE)
@@ -34,11 +34,14 @@ vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE) 
   # Filter results
   resultset <- resultset[match_filter_idx(resultset$context, filter), ]
 
-  make_vtest_indexpage(resultset, get_vtest_htmldir(), reftext, commit)
+  indexpage <- make_vtest_indexpage(resultset, get_vtest_htmldir(), reftext, commit)
 
   ddply(resultset, .(context), .fun = function(ti) {
       make_vtest_contextpage(ti, get_vtest_htmldir(), imagedir, reftext, commit, convertpng)
   })
+
+  if(confirm("Open webpage in browser? (y/n) "))
+    browseURL(indexpage)
 
   invisible()
 }
@@ -71,6 +74,8 @@ make_vtest_indexpage <- function(resultset, htmldir = NULL, reftext = "", commit
   htmlfile <- file.path(normalizePath(htmldir), "index.html")
   message("Writing ", htmlfile)
   render_template('vtest-index', data, htmlfile)
+
+  return(htmlfile)
 }
 
 

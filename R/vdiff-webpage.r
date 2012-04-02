@@ -9,7 +9,7 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
       convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
   # TODO: message about weird color space in conversion using convert
   # TODO: print message about png option, and slow png vs safari-only pdf
-  set_vtest_pkg(pkg)
+  init_vtest(pkg)
 
   if (!file.exists(get_vtest_diffdir()))
     dir.create(get_vtest_diffdir(), recursive = TRUE)
@@ -41,12 +41,16 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
     imagedir <- get_vtest_imagedir()
   }
 
-  make_vdiff_indexpage(vdiff, ref1text, ref2text, commit1, commit2, get_vtest_diffdir())
+  indexpage <- make_vdiff_indexpage(vdiff, ref1text, ref2text,
+                                    commit1, commit2, get_vtest_diffdir())
 
   for (context in unique(vdiff$context)) {
     make_vdiff_contextpage(vdiff, context, ref1text, ref2text, commit1, commit2,
                            get_vtest_diffdir(), imagedir, convertpng, method = method)
   }
+
+  if(confirm("Open webpage in browser? (y/n) "))
+    browseURL(indexpage)
 
   invisible()
 }
@@ -87,6 +91,8 @@ make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "",
   htmlfile <- file.path(normalizePath(diffdir), "index.html")
   message("Writing ", htmlfile)
   render_template('vdiff-index', data, htmlfile)
+
+  return(htmlfile)
 }
 
 
@@ -193,4 +199,5 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
       file.path(diffdir, paste(changed$hash1, "-", changed$hash2, ".png", sep="")))
   }
 
+  return(htmlfile)
 }

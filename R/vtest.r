@@ -13,8 +13,8 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg)
 
-  set_vtest_pkg(pkg)
   init_vtest(pkg)
+  reset_lasttest()
 
   if (!file.exists(get_vtest_dir()))
     stop("Visual test script directory does not exist", get_vtest_dir())
