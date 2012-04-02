@@ -68,10 +68,8 @@ local({
     parent$pkg <- pkg
 
     if (is.null(resultdir))  {
-      # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2-vtest
-      p <- strsplit(pkg$path, "/")[[1]]
-      parent$resultdir <-
-        paste(c(p[-length(p)], paste(pkg$package, "vtest", sep="-")), collapse="/")
+      # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
+      parent$resultdir <- file.path(pkg$path, "visual_test", "vtest")
     } else {
       parent$resultdir <- resultdir
     }
