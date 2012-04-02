@@ -27,3 +27,4 @@ Collate:
     'utils.r'
     'vtest-utils.r'
     'git-db.r'
+    'vcontext.r'

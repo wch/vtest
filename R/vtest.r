@@ -22,24 +22,6 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   if (showhelp)
     message("Using test results directory ", get_vtest_resultdir())
 
-  if (!file.exists(get_vtest_resultdir())) {
-    if (!confirm(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) ")))
-      return(invisible())
-    dir.create(get_vtest_resultdir(), recursive = TRUE, showWarnings = FALSE)
-  }
-
-  if (!file.exists(get_vtest_imagedir())) {
-    if (!confirm(paste(get_vtest_imagedir(), "does not exist! Create? (y/n) ")))
-      return(invisible())
-    dir.create(get_vtest_imagedir(), recursive = TRUE, showWarnings = FALSE)
-  }
-
-  if (!file.exists(get_vtest_lasttest_dir()))
-    dir.create(get_vtest_lasttest_dir())
-  else
-    unlink(dir(get_vtest_lasttest_dir(), full.names = TRUE))
-
-
   # Run the test scripts
   files <- dir(get_vtest_dir(), full.names = TRUE, include.dirs = FALSE)
   files <- files[grepl("\\.[rR]$", files)]
@@ -207,30 +189,6 @@ save_last_resultset <- function(prompt = TRUE) {
 }
 
 
-# Start a visual test context
-#' @export
-vcontext <- function(context) {
-  if (!is.null(get_vcontext()))
-    stop("Can't open new context while current context is still open. Use end_vcontext().")
-
-  set_vcontext(context)
-  message(context, appendLF = FALSE)
-}
-
-
-# Finish a visual test context.
-#' @export
-end_vcontext <- function() {
-  if(is.null(get_vcontext())) {
-    message("No open vcontext to end.")
-    return(invisible())
-  }
-
-  set_vcontext(NULL)  # Reset the context
-  message("")         # Print a newline
-}
-
-
 # Save an individual test to file, and record information using append_vtest_resultset
 # This presently only works with pdf; other file types will fail
 # * desc: a short description of the test
@@ -283,10 +241,12 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   else
     unlink(cleanpdf)
 
-  # Append the info for this test in the vis_info list
+  inc_vcontext_count()
+
+  # Append the info for this test to the resultset
   append_vtest_resultset(context = get_vcontext(), desc = desc,
     type = device, width = width, height = height, dpi = dpi,
-    err = err, hash = filehash)
+    err = err, hash = filehash, order = get_vcontext_count())
 
   message(".", appendLF = FALSE)
 }

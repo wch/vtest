@@ -9,7 +9,7 @@ load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
   if (file.exists(get_vtest_resultsets_file()))
     resultsets <- read.csv(get_vtest_resultsets_file(), stringsAsFactors = FALSE)
   else
-    resultsets <- cbind(resultset_hash = character(), empty_resultset)
+    resultsets <- cbind(resultset_hash = character(), empty_resultset())
 
   if (is.null(commit) && is.null(resultset_hash))
     return(resultsets)
@@ -57,8 +57,18 @@ load_commits_table <- function() {
 }
 
 
+# Create a zero-row data frame to hold resultset
 empty_resultset <- function() {
-  data.frame(context = context, desc = desc, type = type, width = width,
-          height = height, dpi = dpi, err = err, hash = hash,
-          order = context_count, stringsAsFactors = FALSE)
+  data.frame(
+    context = character(),
+    desc    = character(),
+    type    = character(),
+    width   = numeric(),
+    height  = numeric(),
+    dpi     = numeric(),
+    err     = character(),
+    hash    = character(),
+    order   = numeric(),
+    stringsAsFactors = FALSE
+  )
 }

@@ -1,100 +1,91 @@
 # Utility functions for the vtest "object"
 
-init_vtest <- NULL
-set_vtest_pkg <- NULL
-get_vtest_pkg <- NULL
-get_vtest_dir <- NULL
-get_vtest_resultdir <- NULL
-get_vtest_imagedir <- NULL
-get_vtest_htmldir <- NULL
-get_vtest_diffdir <- NULL
+# This list holds information about current tests
+vt <- list(
+  pkg = NULL,       # The package object that's being tested
+  testdir = NULL,   # The dir of the test scripts(usually package/visual_test/)
+  resultdir = NULL, # Where the database files are saved
+  resultset = NULL # Information about each test
+  )
 
-get_vtest_lasttest_dir <- NULL
-get_vtest_lasttest_resultset_file <- NULL
 
-get_vcontext <- NULL
-set_vcontext <- NULL
-get_vtest_resultset <- NULL
-get_vtest_commits_file <- NULL
-get_vtest_resultsets_file <- NULL
-append_vtest_resultset <- NULL
+init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
 
-local({
-  pkg <- NULL       # The package object
-  testdir <- NULL   # The dir of the test scripts(usually package/visual_test/)
-  resultdir <- NULL # Where the database files are saved
-  imagedir <- NULL  # Where the image files are saved
+  # Close context, if open
+  if (!is.null(get_vcontext())) set_vcontext(NULL)
 
-  context <- NULL   # The context of a set of tests (usually in one script)
-  context_count <- NULL # Keep count of tests, within this context
-  resultset <- NULL  # Information about each test in a context
+  # Reset vt to starting state
+  vt <<- list(
+    pkg = NULL,
+    testdir = NULL,
+    resultdir = NULL,
+    imagedir = NULL,
+    resultset = NULL
+    )
 
-  # These are used by the top-level vtest function
-  get_vtest_pkg <<- function() pkg
-  get_vtest_dir <<- function() testdir
-  get_vtest_resultdir <<- function() resultdir
-  get_vtest_commits_file    <<- function() file.path(resultdir, "commits.csv")
-  get_vtest_resultsets_file <<- function() file.path(resultdir, "resultsets.csv")
-  get_vtest_imagedir <<- function() file.path(resultdir, "images")
-  get_vtest_htmldir  <<- function() file.path(resultdir, "html")
-  get_vtest_diffdir  <<- function() file.path(resultdir, "diff")
+  set_vtest_pkg(pkg)
 
-  get_vtest_lasttest_dir <<- function() file.path(resultdir, "lasttest")
-  get_vtest_lasttest_resultset_file <<- function() file.path(resultdir, "lasttest", "resultset.csv")
-
-  # These are used by each test script
-  get_vcontext <<- function() context
-  set_vcontext <<- function(value) {
-    context <<- value
-    context_count <<- 0
+  if (is.null(vt$resultdir))  {
+    # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
+    vt$resultdir <<- file.path(get_vtest_pkg()$path, "visual_test", "vtest")
+  } else {
+    vt$resultdir <<- resultdir
   }
 
-  init_vtest <<- function(pkg, testdir = NULL, resultdir = NULL) {
 
-    # Close context, if open
-    if (!is.null(get_vcontext())) set_vcontext(NULL)
-
-    # Create a zero-row data frame to hold resultset
-    cols <- c("context", "desc", "type", "width", "height", "dpi", "err",
-              "hash", "order")
-    resultset <- setNames(data.frame(t(rep(NA, length(cols)))), cols)
-    parent <- parent.env(environment())  # This is where the variables are
-    parent$resultset <- resultset[-1, ]
+  # Make directories for storing results
+  if (!file.exists(get_vtest_resultdir())) {
+    if (!confirm(paste(get_vtest_resultdir(), "does not exist! Create? (y/n) ")))
+      stop("Cannot continue without creating directory for results")
+    dir.create(get_vtest_resultdir(), recursive = TRUE, showWarnings = FALSE)
   }
 
-  set_vtest_pkg <<- function(pkg) {
-    parent <- parent.env(environment())  # This is where the variables are
-    pkg <- as.package(pkg)
-    parent$pkg <- pkg
+  if (!file.exists(get_vtest_imagedir()))
+    dir.create(get_vtest_imagedir(), recursive = TRUE, showWarnings = FALSE)
 
-    if (is.null(resultdir))  {
-      # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
-      parent$resultdir <- file.path(pkg$path, "visual_test", "vtest")
-    } else {
-      parent$resultdir <- resultdir
-    }
+  if (!file.exists(get_vtest_lasttest_dir()))
+    dir.create(get_vtest_lasttest_dir())
+  else
+    unlink(dir(get_vtest_lasttest_dir(), full.names = TRUE))
+  
+  if (is.null(testdir))  vt$testdir <<- file.path(get_vtest_pkg()$path, "visual_test")
+  else                   vt$testdir <<- testdir
 
-    if (!file.exists(get_vtest_lasttest_dir()))
-      dir.create(get_vtest_lasttest_dir())
-    
-    if (is.null(testdir))  parent$testdir <- file.path(pkg$path, "visual_test")
-    else                   parent$testdir <- testdir
-  }
+  # Create a zero-row data frame to hold resultset
+  vt$resultset <<- empty_resultset()
+}
 
-  get_vtest_resultset <<- function() resultset
 
-  # Add information about a single test
-  append_vtest_resultset <<- function(context, desc, type, width, height, dpi, err, hash, order) {
-    # Check that context + description aren't already used
-    if (sum(context == resultset$context & desc == resultset$desc) != 0)
-      stop(context, ":\"", desc, "\" cannot be added to resultset because it is already present.")
+set_vtest_pkg <- function(pkg) {
+  pkg <- as.package(pkg)
+  vt$pkg <<- pkg
+}
 
-    context_count <<- context_count + 1
 
-    resultset <<- rbind(resultset,
-      data.frame(context = context, desc = desc, type = type, width = width,
-        height = height, dpi = dpi, err = err, hash = hash,
-        order = context_count, stringsAsFactors = FALSE))
-  }
+get_vtest_pkg <- function() vt$pkg
+get_vtest_dir <- function() vt$testdir
+get_vtest_resultdir <- function() vt$resultdir
+get_vtest_imagedir <- function() file.path(vt$resultdir, "images")
+get_vtest_htmldir <- function() file.path(vt$resultdir, "html")
+get_vtest_diffdir <- function() file.path(vt$resultdir, "diff")
 
-})
+get_vtest_commits_file    <- function() file.path(vt$resultdir, "commits.csv")
+get_vtest_resultsets_file <- function() file.path(vt$resultdir, "resultsets.csv")
+
+get_vtest_lasttest_dir            <- function() file.path(vt$resultdir, "lasttest")
+get_vtest_lasttest_resultset_file <- function() file.path(vt$resultdir, "lasttest", "resultset.csv")
+
+get_vtest_resultset <- function() vt$resultset
+
+
+# Add information about a single test
+append_vtest_resultset <- function(context, desc, type, width, height, dpi, err, hash, order) {
+  # Check that context + description aren't already used
+  if (sum(context == vt$resultset$context  &  desc == vt$resultset$desc) != 0)
+    stop(context, ":\"", desc, "\" cannot be added to resultset because it is already present.")
+
+  vt$resultset <<- rbind(vt$resultset,
+    data.frame(context = context, desc = desc, type = type, width = width,
+      height = height, dpi = dpi, err = err, hash = hash,
+      order = order, stringsAsFactors = FALSE))
+}
