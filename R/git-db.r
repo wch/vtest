@@ -8,7 +8,7 @@
 #' @param start  The commit to start searching backward from
 #' @param n  Maximum number of commits to search
 #' @export
-recent_commits_resultsets <- function(start = "", n = 20) {
+recent_resultsets <- function(start = "", n = 20) {
   prev <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
   prev_commits <- data.frame(idx = seq_along(prev), commit = prev)
 
