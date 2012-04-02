@@ -1,4 +1,5 @@
-# Utility functions for the vtest "object"
+# Global information about visual tests, stored in vt,
+# and utility functions for the vt "object"
 
 # This list holds information about current tests
 vt <- list(
@@ -6,7 +7,7 @@ vt <- list(
   testdir = NULL,   # The dir of the test scripts(usually package/visual_test/)
   resultdir = NULL, # Where the database files are saved
   resultset = NULL # Information about each test
-  )
+)
 
 
 init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
