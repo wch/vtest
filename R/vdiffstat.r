@@ -31,9 +31,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     ti1 <- load_resultsets(commit = commit1)
   }
   if (nrow(ti1) == 0) {
-    stop("No resultset found for ref ", ref1, ", commit ", substr(commit1, 1, 8),
-      "\n", nearest_commit_with_resultset(commit1, 25), "\n",
-      "Run recent_commits_resultsets(\"", ref1, "\") to see a list of recent commits and their resultsets.")
+    stop("No resultset found for ref ", ref1, ", commit ", substr(commit1, 1, 6), "\n",
+      "Run recent_vtest() to see a list of recent commits with test results.")
   }
 
   if (ref2 == "") {
@@ -46,9 +45,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     ti2 <- load_resultsets(commit = commit2)
   }
   if (nrow(ti2) == 0) {
-    stop("No resultset found for ref ", ref2, ", commit ", substr(commit2, 1, 6),
-      "\n", nearest_commit_with_resultset(commit2, 25), "\n",
-      "Run recent_commits_resultsets(\"", ref2, "\") to see a list of recent commits and their resultsets.")
+    stop("No resultset found for ref ", ref2, ", commit ", substr(commit2, 1, 6), "\n",
+      "Run recent_vtest() to see a list of recent commits with test results.")
   }
 
   # Keep just a few columns
@@ -77,26 +75,4 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     td <- td[td$status != "U", ]
 
   return(arrange(td, context, order1, order2))
-}
-
-
-#' This function is only to be called from vdiffstat
-#'
-#' @param start  The commit to start searching backward from
-#' @param n  Maximum number of commits to search
-nearest_commit_with_resultset <- function(start = "", n = 20) {
-  pcommits <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
-  c_results <- load_commits_table()
-
-  matchidx <- which(pcommits %in% c_results$commit)
-  if (length(matchidx) == 0) {
-    return(str_c("No commit with a resultset found within last ", n,
-      " commits"))
-
-  } else {
-    matchidx <- min(matchidx)   # If we did this with an empty matchidx, it would complain
-    return(str_c("Most recent commit with a resultset: ",
-      substr(pcommits[matchidx], 1, 6), ", found ", matchidx-1,
-      " commits previous.\n"))
-  }
 }

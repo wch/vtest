@@ -19,7 +19,7 @@ load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
     resultset_hash <- commits$resultset_hash[commits$commit == commit]
 
     if (length(resultset_hash) == 0)
-      stop("No resultset_hash found for commit ", commit)
+      warning("No resultset_hash found for commit ", commit)
     else if (length(resultset_hash) > 1)
       stop("More than one resultset_hash found for commit ", commit)
   }

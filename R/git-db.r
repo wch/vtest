@@ -3,12 +3,12 @@
 
 #' Returns a data frame of recent commits and their associated resultset_hash.
 #'
-#' For commits without a resultset, the resultset_hash is NA.
+#' For commits without a resultset, the resultset_hash is \code{NA}.
 #'
 #' @param start  The commit to start searching backward from
 #' @param n  Maximum number of commits to search
 #' @export
-recent_resultsets <- function(start = "", n = 20) {
+recent_vtest <- function(start = "", n = 20) {
   prev <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
   prev_commits <- data.frame(idx = seq_along(prev), commit = prev)
 
