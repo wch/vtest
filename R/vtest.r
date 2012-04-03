@@ -218,11 +218,13 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   # that there's a warning (in 'err') and then re-run the ggsave so that the
   # file actually gets written. This is an ugly way to do it. Is it possible
   # to record the warning AND let it finish running?
-  tryCatch({ ggsave(temppdf, width = width, height = height, dpi = dpi,
+  tryCatch({ ggsave(temppdf, plot = last_plot(),
+              width = width, height = height, dpi = dpi,
               device = match.fun(device), compress = FALSE) },
            warning = function(w) {
              err <<- "warn"
-             ggsave(temppdf, width = width, height = height, dpi = dpi,
+             ggsave(temppdf, plot = last_plot(),
+               width = width, height = height, dpi = dpi,
                device = match.fun(device), compress = FALSE) },
            error   = function(e) { err <<- "error"; warning(e) })
 

@@ -2,12 +2,7 @@
 # and utility functions for the vt "object"
 
 # This list holds information about current tests
-vt <- list(
-  pkg = NULL,       # The package object that's being tested
-  testdir = NULL,   # The dir of the test scripts(usually package/visual_test/)
-  resultdir = NULL, # Where the database files are saved
-  resultset = NULL # Information about each test
-)
+vt <- new.env(hash = TRUE, parent = emptyenv())
 
 
 init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
@@ -16,26 +11,24 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
   if (!is.null(get_vcontext())) set_vcontext(NULL)
 
   # Reset vt to starting state
-  vt <<- list(
-    pkg = NULL,
-    testdir = NULL,
-    resultdir = NULL,
-    resultset = NULL
-    )
+  vt$pkg <- NULL       # The package object that's being tested
+  vt$testdir <- NULL   # The dir of the test scripts(usually package/visual_test/)
+  vt$resultdir <- NULL # Where the database files are saved
+  vt$resultset <- NULL # Information about each test
 
-  vt$pkg <<- as.package(pkg)
+  vt$pkg <- as.package(pkg)
 
   # The directory where visual test scripts are stored
   if (is.null(testdir))
-    vt$testdir <<- file.path(vt$pkg$path, "visual_test")
+    vt$testdir <- file.path(vt$pkg$path, "visual_test")
   else
-    vt$testdir <<- testdir
+    vt$testdir <- testdir
 
   # If packaage dir is mypath/ggplot2, default result dir is mypath/ggplot2/visual_test/vtest
   if (is.null(vt$resultdir))
-    vt$resultdir <<- file.path(vt$pkg$path, "visual_test", "vtest")
+    vt$resultdir <- file.path(vt$pkg$path, "visual_test", "vtest")
   else
-    vt$resultdir <<- resultdir
+    vt$resultdir <- resultdir
 
 
   # Make directories for storing results
@@ -55,7 +48,7 @@ init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
     dir.create(get_vtest_lasttest_dir())
 
   # Create a zero-row data frame to hold resultset
-  vt$resultset <<- empty_resultset()
+  vt$resultset <- empty_resultset()
 
   invisible()
 }
@@ -87,7 +80,7 @@ append_vtest_resultset <- function(context, desc, type, width, height, dpi, err,
   if (sum(context == vt$resultset$context  &  desc == vt$resultset$desc) != 0)
     stop(context, ":\"", desc, "\" cannot be added to resultset because it is already present.")
 
-  vt$resultset <<- rbind(vt$resultset,
+  vt$resultset <- rbind(vt$resultset,
     data.frame(context = context, desc = desc, type = type, width = width,
       height = height, dpi = dpi, err = err, hash = hash,
       order = order, stringsAsFactors = FALSE))
