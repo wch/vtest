@@ -7,9 +7,10 @@
 #'
 #' @param start  The commit to start searching backward from
 #' @param n  Maximum number of commits to search
+#' @param dir The directory with the git repository
 #' @export
-recent_vtest <- function(start = "", n = 20) {
-  prev <- git_prev_commits(dir = get_vtest_pkg()$path, n = n, start = start)
+recent_vtest <- function(dir = ".", start = "", n = 20) {
+  prev <- git_prev_commits(dir = dir, n = n, start = start)
   prev_commits <- data.frame(idx = seq_along(prev), commit = prev)
 
   c_results <- load_commits_table()
