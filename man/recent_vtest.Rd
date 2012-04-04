@@ -1,8 +1,8 @@
-\name{recent_resultsets}
-\alias{recent_resultsets}
+\name{recent_vtest}
+\alias{recent_vtest}
 \title{Returns a data frame of recent commits and their associated resultset_hash.}
 \usage{
-  recent_resultsets(start = "", n = 20)
+  recent_vtest(start = "", n = 20)
 }
 \arguments{
   \item{start}{The commit to start searching backward from}
@@ -11,6 +11,6 @@
 }
 \description{
   For commits without a resultset, the resultset_hash is
-  NA.
+  \code{NA}.
 }
 
