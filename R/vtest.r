@@ -123,13 +123,7 @@ save_last_resultset <- function(prompt = TRUE) {
   message("Checking if this resultset is already in resultsets table...")
 
   # Get the old results that match the current resultset hash (if present)
-  # It would be nice to be able to use:
-  #   subset(resultsets, resultset_hash == resultset_hash, select = -resultset_hash)
-  # but this case is problematic for subset because of re-used var name and
-  # because when there are no matches, subset returns a 1-row NA-filled data frame.
-  resultset_match <- load_resultsets(resultset_hash = resultset_hash)
-  # Drop the resultset_hash column
-  resultset_match <- resultset_match[!(names(resultset_match) %in% "resultset_hash")]
+  resultset_match <- extract_resultsets(load_resultsets(), resultset_hash, drop_hash = TRUE) 
 
   if (nrow(resultset_match) > 0) {
     message("Found existing resultset with matching hash: ", resultset_hash)

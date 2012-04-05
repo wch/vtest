@@ -24,7 +24,7 @@ load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
       stop("More than one resultset_hash found for commit ", commit)
   }
 
-  return(resultsets[resultsets$resultset_hash == resultset_hash, , drop = FALSE])
+  return(extract_resultset(resultsets, resultset_hash, drop_hash = FALSE))
 }
 
 
@@ -33,6 +33,17 @@ load_lastresultset <- function() {
   return(read.csv(get_vtest_lasttest_resultset_file(), stringsAsFactors = FALSE))
 }
 
+
+# Given the resultsets table, extract results that match a single hash
+extract_resultset <- function(resultsets, hash, drop_hash = TRUE) {
+  match <- resultsets[resultsets$resultset_hash == hash, , drop = FALSE]
+
+  # Drop the resultset_hash column
+  if (drop_hash)
+    match <- match[!(names(match) %in% "resultset_hash")]
+
+  match
+}
 
 # Get a hash of a resultset table
 hash_resultset <- function(t) {
