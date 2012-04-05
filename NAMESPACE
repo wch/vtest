@@ -1,3 +1,4 @@
+export(check_vtest_db)
 export(end_vcontext)
 export(recent_vtest)
 export(save_vtest)

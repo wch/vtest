@@ -28,3 +28,4 @@ Collate:
     'git-db.r'
     'vcontext.r'
     'vt-info.r'
+    'db-check.r'
