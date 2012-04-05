@@ -4,7 +4,15 @@
 # This list holds information about current tests
 vt <- new.env(hash = TRUE, parent = emptyenv())
 
-
+#' Initialize the environment for vtest to run
+#'
+#' @param pkg  A package object, or path to the package
+#' @param testdir  The directory with the test scripts. If \code{NULL},
+#'   it will be set to packagedir/visual_test/.
+#' @param resultdir  The directory that results are stored in. If \code{NULL},
+#'   it will be set to packagedir/visual_test/vtest/.
+#'
+#' @export
 init_vtest <- function(pkg, testdir = NULL, resultdir = NULL) {
 
   # Close context, if open
