@@ -11,7 +11,7 @@ NULL
 #' @export
 vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
-  load_all(pkg)
+  load_all(pkg, reset = TRUE)
 
   init_vtest(pkg)
   reset_lasttest()
@@ -194,7 +194,6 @@ save_last_resultset <- function(prompt = TRUE) {
 # * device: string with name of output device. Only "pdf" is supported now.
 # * err: error status. ok, warn, or error
 # * hash: a hash of the file contents
-#' @importFrom ggplot2 ggsave
 #' @export
 save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "pdf") {
   if (is.null(get_vcontext()))     stop("Must have active vcontext")
@@ -212,12 +211,12 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   # that there's a warning (in 'err') and then re-run the ggsave so that the
   # file actually gets written. This is an ugly way to do it. Is it possible
   # to record the warning AND let it finish running?
-  tryCatch({ ggsave(temppdf, plot = last_plot(),
+  tryCatch({ ggsave2(temppdf, plot = last_plot(),
               width = width, height = height, dpi = dpi,
               device = match.fun(device), compress = FALSE) },
            warning = function(w) {
              err <<- "warn"
-             ggsave(temppdf, plot = last_plot(),
+             ggsave2(temppdf, plot = last_plot(),
                width = width, height = height, dpi = dpi,
                device = match.fun(device), compress = FALSE) },
            error   = function(e) { err <<- "error"; warning(e) })
