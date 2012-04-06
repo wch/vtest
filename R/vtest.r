@@ -123,7 +123,7 @@ save_last_resultset <- function(prompt = TRUE) {
   message("Checking if this resultset is already in resultsets table...")
 
   # Get the old results that match the current resultset hash (if present)
-  resultset_match <- extract_resultsets(load_resultsets(), resultset_hash, drop_hash = TRUE) 
+  resultset_match <- extract_resultset(load_resultsets(), resultset_hash, drop_hash = TRUE) 
 
   if (nrow(resultset_match) > 0) {
     message("Found existing resultset with matching hash: ", resultset_hash)
