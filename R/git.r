@@ -52,5 +52,5 @@ git_prev_commits <- function(dir = ".", n = 20, start = "", all = FALSE) {
   if (!is.null(attr(ret, "status")))
     stop("Error finding git history of ", dir, ":", ret)
 
-  return(strsplit(ret, "\n")[[1]])
+  return(ret)
 }
