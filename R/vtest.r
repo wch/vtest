@@ -54,6 +54,9 @@ commit in the ", get_vtest_pkg()$package, " repository. (Hide this message with 
 }
 
 
+#' Saves the last resultset to the database, if possible
+#'
+#' @export
 save_last_resultset <- function(prompt = TRUE) {
 
   last_resultset <- load_lastresultset()
