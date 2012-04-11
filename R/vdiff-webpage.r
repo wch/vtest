@@ -46,20 +46,20 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
   if (ref1 == "") {
     ref1text <- "last local test"
     commit1 <- "NA"
-    imagedir <- get_vtest_lasttest_dir()
+    ref1imagedir <- get_vtest_lasttest_dir()
   } else {
     ref1text <- ref1
     commit1 <- git_find_commit_hash(get_vtest_pkg()$path, ref1)
-    imagedir <- get_vtest_imagedir()
+    ref1imagedir <- get_vtest_imagedir()
   }
   if (ref2 == "") {
     ref2text <- "last local test"
     commit2 <- "NA"
-    imagedir <- get_vtest_lasttest_dir()
+    ref2imagedir <- get_vtest_lasttest_dir()
   } else {
     ref2text <- ref2
     commit2 <- git_find_commit_hash(get_vtest_pkg()$path, ref2)
-    imagedir <- get_vtest_imagedir()
+    ref2imagedir <- get_vtest_imagedir()
   }
 
   indexpage <- make_vdiff_indexpage(vdiff, ref1text, ref2text,
@@ -67,7 +67,8 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
 
   for (context in unique(vdiff$context)) {
     make_vdiff_contextpage(vdiff, context, ref1text, ref2text, commit1, commit2,
-                           get_vtest_diffdir(), imagedir, convertpng, method = method)
+                           get_vtest_diffdir(), ref1imagedir, ref2imagedir,
+                           convertpng, method = method)
   }
 
   if (prompt && confirm("Open webpage in browser? (y/n) "))
@@ -121,12 +122,13 @@ make_vdiff_indexpage <- function(vdiff, ref1text = "", ref2text = "",
 # This shouldn't be called by the user - users should call vdiff_webpage()
 #' @importFrom whisker iteratelist
 make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2text = "",
-    commit1 = "", commit2 = "", diffdir = NULL, imagedir = NULL, convertpng = TRUE,
-    method = "ghostscript") {
+    commit1 = "", commit2 = "", diffdir = NULL, ref1imagedir = NULL, ref2imagedir = NULL,
+    convertpng = TRUE, method = "ghostscript") {
 
   if(is.null(context))  stop("Need to specify context")
   if(is.null(diffdir))  stop("Need to specify diffdir")
-  if(is.null(imagedir)) stop("Need to specify imagedir")
+  if(is.null(ref1imagedir)) stop("Need to specify ref1imagedir")
+  if(is.null(ref2imagedir)) stop("Need to specify ref2imagedir")
 
   vdiff <- vdiff[vdiff$context == context, ]
 
@@ -197,11 +199,12 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
 
   if (convertpng) {
     # Convert all the images
-    convertfiles <- unique(c(vdiff$hash1, vdiff$hash2))
-
+    ref1convertfiles <- vdiff$hash1
+    ref2convertfiles <- vdiff$hash2[ !(vdiff$hash2 %in% vdiff$hash1) ]
   } else {
     # Convert only those images that changed (and require diff images)
-    convertfiles <- unique(c(changed$hash1, changed$hash2))
+    ref1convertfiles <- changed$hash1
+    ref2convertfiles <- changed$hash2[ !(changed$hash2 %in% changed$hash1) ]
 
     # Copy over the other files (to display as PDF)
     allhashes <- unique(c(vdiff$hash1, vdiff$hash2))
@@ -209,9 +212,13 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
       file.path(imagedir, allhashes),
       file.path(diffdir, paste(allhashes, ".pdf", sep="")))
   }
-  convertfiles <- convertfiles[!is.na(convertfiles)] # Drop NAs
 
-  convert_png_cached(convertfiles, imagedir, diffdir, method = method)
+  # Drop NAs
+  ref1convertfiles <- ref1convertfiles[!is.na(ref1convertfiles)]
+  ref2convertfiles <- ref2convertfiles[!is.na(ref2convertfiles)]
+
+  convert_png_cached(ref1convertfiles, ref1imagedir, diffdir, method = method)
+  convert_png_cached(ref2convertfiles, ref2imagedir, diffdir, method = method)
 
   if(nrow(changed) > 0) {
     compare_png(
