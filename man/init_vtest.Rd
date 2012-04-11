@@ -2,7 +2,7 @@
 \alias{init_vtest}
 \title{Initialize the environment for vtest to run}
 \usage{
-  init_vtest(pkg, testdir = NULL, resultdir = NULL)
+  init_vtest(pkg = NULL, testdir = NULL, resultdir = NULL)
 }
 \arguments{
   \item{pkg}{A package object, or path to the package}

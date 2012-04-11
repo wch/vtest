@@ -1,7 +1,13 @@
-# For a PDF, modify the CreationDate and ModDate (lines 5 and 6)
-# so that the files are exactly the same, regardless of date + time they
-# were created. The output must be written to a different file.
-zero_pdf_date <- function(infile = NULL, outfile = NULL) {
+#' Normalize creation information in PDF files
+#'
+#' For a PDF, modify the CreationDate and ModDate (lines 5 and 6)
+#' so that the files are exactly the same, regardless of date + time they
+#' were actually created. It also changes the Producer field (line 8) to "R 0.00.0",
+#' instead of the usual version, e.g., "R 2.15.0".
+#'
+#' @param infile input file name
+#' @param outfile output file name (must be different from \code{infile})
+zero_pdf_info <- function(infile = NULL, outfile = NULL) {
   if (is.null(infile) || is.null(outfile))
     stop("Can't operate on NULL infile or outfile")
 
@@ -15,6 +21,7 @@ zero_pdf_date <- function(infile = NULL, outfile = NULL) {
 
   pdftext[5] <- "/CreationDate (D:00000000000000)"
   pdftext[6] <- "/ModDate (D:00000000000000)"
+  pdftext[8] <- "/Producer (R 0.00.0)"
 
   outfile_fd <- file(outfile, "w")
   writeLines(pdftext, outfile_fd)

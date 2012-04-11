@@ -221,9 +221,9 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
                device = match.fun(device), compress = FALSE) },
            error   = function(e) { err <<- "error"; warning(e) })
 
-  # Zero out the dates and write modified PDF file to the output dir
+  # Zero out the dates/producer and write modified PDF file to the output dir
   cleanpdf <- tempfile("vtest_cleaned")
-  zero_pdf_date(temppdf, cleanpdf)
+  zero_pdf_info(temppdf, cleanpdf)
 
   unlink(temppdf)  # Remove the file in the temp dir
 
