@@ -28,3 +28,4 @@ Collate:
     'vcontext.r'
     'vt-info.r'
     'db-check.r'
+    'ggsave2.r'
