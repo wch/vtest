@@ -1,31 +1,33 @@
-# Functions that interact with the git repositor
+# Functions that interact with the git repository
 
 # Find the current git commit hash of a directory, given a commit ref
 git_find_commit_hash <- function(dir = ".", ref = "HEAD") {
-  ret <- systemCall("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", ref))
-  ret$output <- gsub("\\n$", "", ret$output)  # Remove trailing \n
+  ret <- system2("git", c("--git-dir", file.path(dir, ".git"), "rev-parse", ref),
+    stdout = TRUE, stderr = TRUE)
 
-  if (ret$status == 0  && nchar(ret$output) == 40)
-    return(ret$output)
-  else
-    stop("Error finding current git commit hash of repo at ", dir, ":", ret$output)
+  if (!is.null(attr(ret, "status")) || nchar(ret) != 40)
+    stop("Error finding current git commit hash of repo at ", dir, ":", ret)
+
+  ret <- gsub("\\n$", "", ret)  # Remove trailing \n
+  return(ret)
 }
 
 
 # Check if the state of the git working tree is clean or dirty
 git_check_clean <- function(dir = ".") {
-  ret <- systemCall("git",
-    c("--git-dir", file.path(dir, ".git"), "--work-tree", dir, "diff", "--shortstat"))
-  ret$output <- gsub("\\n$", "", ret$output)  # Remove trailing \n
+  ret <- system2("git",
+    c("--git-dir", file.path(dir, ".git"), "--work-tree", dir, "diff", "--shortstat"),
+    stdout = TRUE, stderr = TRUE)
 
-  if (ret$status == 0) {
-    if (length(ret$output) == 0)
-      return(TRUE)
-    else
-      return(FALSE)
-  } else {
-    stop("Error checking git working tree clean/dity status of ", dir, ":", ret$output)
-  }
+  if (!is.null(attr(ret, "status")))
+    stop("Error checking git working tree clean/dity status of ", dir, ":", ret)
+
+  ret <- gsub("\\n$", "", ret)  # Remove trailing \n
+
+  if (length(ret) == 0)
+    return(TRUE)
+  else
+    return(FALSE)
 }
 
 
@@ -45,12 +47,10 @@ git_prev_commits <- function(dir = ".", n = 20, start = "", all = FALSE) {
   if (!is.null(n))  args <- c(args, str_c("-", n))
   if (all)          args <- c(args, "--all")
 
-  ret <- systemCall("git", c(args, start))
+  ret <- system2("git", c(args, start), stdout = TRUE, stderr = TRUE)
 
-  if (ret$status == 0) {
-    return(strsplit(ret$output, "\n")[[1]])
-  } else {
-    warning(ret$output)
-    return(character())
-  }
+  if (!is.null(attr(ret, "status")))
+    stop("Error finding git history of ", dir, ":", ret)
+
+  return(strsplit(ret, "\n")[[1]])
 }
