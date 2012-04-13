@@ -1,4 +1,4 @@
-#' vtest.
+#' vtest
 #'
 #' @name vtest
 #' @docType package
@@ -7,7 +7,13 @@
 NULL
 
 
-# Run visual tests
+#' Run visual tests
+#'
+#' @param pkg a path to the package, or a package object
+#' @param filter only tests with file names matching this
+#'   regular expression will be executed.
+#' @param showhelp if \code{TRUE}, print helpful messages.
+#'
 #' @export
 vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
