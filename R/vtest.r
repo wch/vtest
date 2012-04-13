@@ -160,7 +160,7 @@ save_last_resultset <- function(prompt = TRUE) {
       stop("Unexpected status combination.")
 
     if (tolower(resp) != "y") {
-      message("Changes to database not saved.")
+      message("Changes to database not saved. If you decide later to save the results, run save_last_resultset().")
       return(invisible())
     }
   }
