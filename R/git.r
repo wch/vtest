@@ -54,3 +54,8 @@ git_prev_commits <- function(dir = ".", n = 20, start = "", all = FALSE) {
 
   return(ret)
 }
+
+#' Return an abbreviated version of a hash
+git_abbrev_hash <- function(hash = "") {
+  substr(hash, 1, 7)
+}

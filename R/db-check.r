@@ -24,7 +24,7 @@ checkdb_multiple_commits <- function() {
   dup <- duplicated(commits$commit)
   if (any(dup)) {
     dc <- commits$commit[dup]
-    dc <- substr(dc, 1, 6)
+    dc <- git_abbrev_hash(dc)
     message("Multiple entries for ", paste(dc, collapse = ", "))
   } else {
     message("OK (", nrow(commits), " unique commits).")

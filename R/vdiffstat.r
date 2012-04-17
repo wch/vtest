@@ -31,7 +31,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     ti1 <- load_resultsets(commit = commit1)
   }
   if (nrow(ti1) == 0) {
-    stop("No resultset found for ref ", ref1, ", commit ", substr(commit1, 1, 6), "\n",
+    stop("No resultset found for ref ", ref1, ", commit ", git_abbrev_hash(commit1), "\n",
       "Run recent_vtest() to see a list of recent commits with test results.")
   }
 
@@ -45,7 +45,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
     ti2 <- load_resultsets(commit = commit2)
   }
   if (nrow(ti2) == 0) {
-    stop("No resultset found for ref ", ref2, ", commit ", substr(commit2, 1, 6), "\n",
+    stop("No resultset found for ref ", ref2, ", commit ", git_abbrev_hash(commit2), "\n",
       "Run recent_vtest() to see a list of recent commits with test results.")
   }
 

@@ -76,7 +76,7 @@ save_last_resultset <- function(prompt = TRUE) {
 
   # Find current commit of package
   commit <- git_find_commit_hash(get_vtest_pkg()$path)
-  message("Package ", get_vtest_pkg()$package, " is at commit ", substr(commit, 1, 6))
+  message("Package ", get_vtest_pkg()$package, " is at commit ", git_abbrev_hash(commit))
 
   # Check for clean working tree
   if (!git_check_clean(get_vtest_pkg()$path)) {
@@ -96,7 +96,7 @@ save_last_resultset <- function(prompt = TRUE) {
     stop("More than one matching commit in commit table. This indicates a problem with the database.")
 
   } else if (nrow(commitmatch) == 1) {
-    message("Found existing test results for commit ", substr(commit, 1, 6), ": ",
+    message("Found existing test results for commit ", git_abbrev_hash(commit), ": ",
       paste(commitmatch$resultset_hash, collapse = ", "))
 
     if (commitmatch$resultset_hash == resultset_hash) {

@@ -18,7 +18,7 @@ recent_vtest <- function(dir = ".", start = "", n = 20) {
   prev_commits <- prev_commits[order(prev_commits$idx), ]
   prev_commits$idx <- NULL
   rownames(prev_commits) <- NULL
-  prev_commits$commit <- substr(prev_commits$commit, 1, 6)  # Short git hash
+  prev_commits$commit <- git_abbrev_hash(prev_commits$commit)
 
   prev_commits
 }
