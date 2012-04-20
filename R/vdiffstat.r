@@ -4,7 +4,8 @@
 #' commits of the package that was tested.
 #'
 #' @param ref1 a git commit ref to compare (usually this should be the older
-#'  ref)
+#'  ref). If \code{"recent"}, then use the most recent commit with a saved
+#'  resultset.
 #' @param ref2 a git commit ref to compare (usually this should be the newer
 #'  ref). The empty string \code{""} refers to the last-run tests.
 #' @param pkg package object or path.
@@ -19,6 +20,12 @@
 #' @export
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
   init_vtest(pkg)
+
+  if (ref1 == "recent") {
+    recent <- most_recent_vtest()
+    message("Comparing to most recent commit with saved resultset: ", recent$commit, ".")
+    ref1 <- recent$commit
+  }
 
   # Get the resultset data for ref1 and ref2
   if (ref1 == "") {

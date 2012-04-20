@@ -9,7 +9,8 @@
 #' commits of the package that was tested.
 #'
 #' @param ref1 a git commit ref to compare (usually this should be the older
-#'  ref)
+#'  ref). If \code{"recent"}, then use the most recent commit with a saved
+#'  resultset.
 #' @param ref2 a git commit ref to compare (usually this should be the newer
 #'  ref). The empty string \code{""} refers to the last-run tests.
 #' @param pkg package object or path.
@@ -38,6 +39,12 @@ vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
     unlink(dir(get_vtest_diffdir(), full.names = TRUE))
 
   copy_css(get_vtest_diffdir())
+
+  if (ref1 == "recent") {
+    recent <- most_recent_vtest()
+    message("Comparing to most recent resultset in database, at commit ", recent$commit, ".")
+    ref1 <- recent$commit
+  }
 
   # Get the changes
   vdiff <- vdiffstat(ref1, ref2, get_vtest_pkg(), filter, all = TRUE)
