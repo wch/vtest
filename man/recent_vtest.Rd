@@ -7,9 +7,9 @@
 \arguments{
   \item{start}{The commit to start searching backward from}
 
-  \item{n}{Maximum number of commits to search}
-
   \item{dir}{The directory with the git repository}
+
+  \item{n}{Maximum number of commits to search}
 }
 \description{
   For commits without a resultset, the resultset_hash is
