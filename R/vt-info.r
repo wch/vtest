@@ -93,3 +93,10 @@ append_vtest_resultset <- function(context, desc, type, width, height, dpi, err,
       height = height, dpi = dpi, err = err, hash = hash,
       order = order, stringsAsFactors = FALSE))
 }
+
+
+# Make sure that a package is loaded for vtest.
+assert_vtest_pkg_loaded <- function() {
+  if (is.null(get_vtest_pkg()))
+    stop("No package is currently set for vtest. Run init_vtest('pkg_dir').")
+}

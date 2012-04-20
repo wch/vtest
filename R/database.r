@@ -2,6 +2,8 @@
 
 # Get the resultset table for a given commit or resultset_hash
 load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
+  assert_vtest_pkg_loaded()
+
   if (!is.null(commit) && !is.null(resultset_hash))
     stop("Cannot specify both commit and resultset_hash.")
 
@@ -30,6 +32,7 @@ load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
 
 # Get the resultset table for the last test run
 load_lastresultset <- function() {
+  assert_vtest_pkg_loaded()
   return(read.csv(get_vtest_lasttest_resultset_file(), stringsAsFactors = FALSE))
 }
 
@@ -61,6 +64,8 @@ hash_resultset <- function(t) {
 
 #' Load the commit-resultset_hash table
 load_commits_table <- function() {
+  assert_vtest_pkg_loaded()
+
   if (file.exists(get_vtest_commits_file()))
     read.csv(get_vtest_commits_file(), stringsAsFactors = FALSE)
   else
