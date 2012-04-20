@@ -1,8 +1,9 @@
-\name{recent_vtest}
-\alias{recent_vtest}
-\title{Returns a data frame of recent commits and their associated resultset_hash.}
+\name{most_recent_vtest}
+\alias{most_recent_vtest}
+\title{Returns a one-row data frame of the most recent commit that has a
+resultset hash.}
 \usage{
-  recent_vtest(dir = ".", start = "", n = 20,
+  most_recent_vtest(dir = ".", start = "", n = 20,
     main_branch = TRUE)
 }
 \arguments{
@@ -16,7 +17,7 @@
   were merged in.}
 }
 \description{
-  For commits without a resultset, the resultset_hash is
-  \code{NA}.
+  Returns a one-row data frame of the most recent commit
+  that has a resultset hash.
 }
 

@@ -8,7 +8,8 @@
 }
 \arguments{
   \item{ref1}{a git commit ref to compare (usually this
-  should be the older ref)}
+  should be the older ref). If \code{"recent"}, then use
+  the most recent commit with a saved resultset.}
 
   \item{ref2}{a git commit ref to compare (usually this
   should be the newer ref). The empty string \code{""}
