@@ -6,8 +6,8 @@
 #' For commits without a resultset, the resultset_hash is \code{NA}.
 #'
 #' @param start  The commit to start searching backward from
+#' @param dir  The directory with the git repository
 #' @param n  Maximum number of commits to search
-#' @param dir The directory with the git repository
 #' @export
 recent_vtest <- function(dir = ".", start = "", n = 20) {
   prev <- git_prev_commits(dir = dir, n = n, start = start)
