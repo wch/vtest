@@ -180,7 +180,7 @@ save_last_resultset <- function(prompt = TRUE) {
   write.csv(resultsets, get_vtest_resultsets_file(), row.names = FALSE)
 
   # ============ Copy any new image files over ============
-  lasttest_files <- get_vtest_resultset()$hash
+  lasttest_files <- load_lastresultset()$hash
   lasttest_files <- lasttest_files[!(lasttest_files %in% list.files(get_vtest_imagedir()))]
 
   if (length(lasttest_files) > 0) {
