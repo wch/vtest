@@ -8,9 +8,10 @@
 #' @param start  The commit to start searching backward from
 #' @param dir  The directory with the git repository
 #' @param n  Maximum number of commits to search
+#' @param main_branch  Don't show commits on branches that were merged in.
 #' @export
-recent_vtest <- function(dir = ".", start = "", n = 20) {
-  prev <- git_prev_commits(dir = dir, n = n, start = start)
+recent_vtest <- function(dir = ".", start = "", n = 20, main_branch = TRUE) {
+  prev <- git_prev_commits(dir = dir, n = n, start = start, main_branch = main_branch)
   prev_commits <- data.frame(idx = seq_along(prev), commit = prev)
 
   c_results <- load_commits_table()
