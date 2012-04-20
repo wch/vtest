@@ -23,3 +23,18 @@ recent_vtest <- function(dir = ".", start = "", n = 20, main_branch = TRUE) {
 
   prev_commits
 }
+
+
+#' Returns a one-row data frame of the most recent commit that has a
+#' resultset hash.
+#'
+#' @param start  The commit to start searching backward from
+#' @param dir  The directory with the git repository
+#' @param n  Maximum number of commits to search
+#' @param main_branch  Don't show commits on branches that were merged in.
+#' @export
+most_recent_vtest <- function(dir = ".", start = "", n = 20, main_branch = TRUE) {
+  commits <- recent_vtest()
+  idx <- min(which(!is.na(commits$resultset_hash)))
+  commits[idx, ]
+}
