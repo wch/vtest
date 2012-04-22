@@ -109,7 +109,7 @@ make_vtest_contextpage <- function(resultset, htmldir = NULL, imagedir = NULL,
     if (convertpng) file <- paste(t$hash, "png", sep=".")
     else            file <- paste(t$hash, t$type , sep=".")
 
-    data.frame(desc = t$desc, file, hash = t$hash, err = t$err)
+    data.frame(desc = t$desc, file, hash = t$hash, err = t$err, src = t$source)
   }
 
   vtitems <- lapply(split(resultset, 1:nrow(resultset)), item_prep)
