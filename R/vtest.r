@@ -6,7 +6,6 @@
 #' @import devtools plyr digest reshape2 stringr
 NULL
 
-
 #' Run visual tests
 #'
 #' @param pkg a path to the package, or a package object
@@ -33,8 +32,7 @@ vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
   files <- files[grepl("\\.[rR]$", files)]
   files <- match_filter(files, filter)
   files <- files[order(files)]
-  lapply(files, source)
-
+  lapply(files, function(f) {vt$.file_parsing <- f; source(f)})
 
   resultset_hash <- hash_resultset(get_vtest_resultset())
 

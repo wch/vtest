@@ -91,7 +91,7 @@ append_vtest_resultset <- function(context, desc, type, width, height, dpi, err,
   vt$resultset <- rbind(vt$resultset,
     data.frame(context = context, desc = desc, type = type, width = width,
       height = height, dpi = dpi, err = err, hash = hash,
-      order = order, stringsAsFactors = FALSE))
+      order = order, source = vt$.file_parsing, stringsAsFactors = FALSE))
 }
 
 

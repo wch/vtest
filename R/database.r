@@ -85,6 +85,7 @@ empty_resultset <- function() {
     err     = character(),
     hash    = character(),
     order   = numeric(),
+    source  = character(),
     stringsAsFactors = FALSE
   )
 }
