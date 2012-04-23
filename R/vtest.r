@@ -154,6 +154,8 @@ save_last_resultset <- function(prompt = TRUE) {
 
 
   if(prompt) {
+    message("You can save the resultset to the database now. If you choose not to save ",
+        "now, you can save it later by running save_last_resultset().")
     if (commit_status == "replace" && resultset_status == "new")
       resp <- readline("Replace commit and add new resultset to database? (y/n) ")
     else if (commit_status == "replace" && resultset_status == "old")
