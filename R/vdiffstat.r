@@ -57,8 +57,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   }
 
   # Keep just a few columns
-  ti1 <- ti1[c("context", "desc", "order", "hash")]
-  ti2 <- ti2[c("context", "desc", "order", "hash")]
+  ti1 <- ti1[c("context", "desc", "order", "hash", "err")]
+  ti2 <- ti2[c("context", "desc", "order", "hash", "err")]
 
   # Merge together and check for changes
   td <- merge(ti1, ti2, by=c("context", "desc"), suffixes = c("1", "2"), all = TRUE)
@@ -66,6 +66,8 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   td$status[ is.na(td$hash1) & !is.na(td$hash2)] <- "A" # Added
   td$status[!is.na(td$hash1) &  is.na(td$hash2)] <- "D" # Deleted
   td$status[td$hash1 != td$hash2] <- "C"                # Changed
+  td$status[td$err1  != td$err2]  <- "C"                # Changed (if error status changed)
+
 
   td$status <- factor(td$status, levels = c("U", "A", "D", "C")) 
 
@@ -73,7 +75,7 @@ vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = F
   td <- arrange(td, order1, order2)
 
   # Change order of columns to be prettier
-  td <- td[c("context", "desc", "status", "hash1", "hash2", "order1", "order2")]
+  td <- td[c("context", "desc", "status", "hash1", "hash2", "err1", "err2", "order1", "order2")]
 
   # Pull out only the rows where context matches the filter
   td <- td[match_filter_idx(td$context, filter), ]
