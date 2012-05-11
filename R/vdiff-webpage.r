@@ -161,8 +161,18 @@ make_vdiff_contextpage <- function(vdiff, context = NULL, ref1text = "", ref2tex
       status <- "changed"
       cell1  <- img_link(t$hash1)
       cell2  <- img_link(t$hash2)
-      # Diff file is always png
-      celld  <- paste("<img src=\"", t$hash1, "-", t$hash2, ".png", "\">", sep="") 
+
+      # Possible changes: Image hash changed, error status changed, or both
+      if (t$hash1 != t$hash2) {
+        # Diff file is always png
+        celld  <- paste("<img src=\"", t$hash1, "-", t$hash2, ".png", "\">", sep = "")
+      } else {
+        celld  <- ""
+      }
+      if (t$err1 != t$err2) {
+        celld <- paste(celld, 'Error status changed from <b>', t$err1,
+          '</b> to <b>', t$err2, '</b>. ', sep = "")
+      }
     } else if (t$status == "U") {    # Unchanged file
       status <- "unchanged"
       cell1  <- img_link(t$hash1)
