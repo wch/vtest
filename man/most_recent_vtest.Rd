@@ -3,7 +3,7 @@
 \title{Returns a one-row data frame of the most recent commit that has a
 resultset hash.}
 \usage{
-  most_recent_vtest(dir = ".", start = "", n = 20,
+  most_recent_vtest(dir = ".", start = "",
     main_branch = TRUE)
 }
 \arguments{

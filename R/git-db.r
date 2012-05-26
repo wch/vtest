@@ -33,8 +33,8 @@ recent_vtest <- function(dir = ".", start = "", n = 20, main_branch = TRUE) {
 #' @param n  Maximum number of commits to search
 #' @param main_branch  Don't show commits on branches that were merged in.
 #' @export
-most_recent_vtest <- function(dir = ".", start = "", n = 20, main_branch = TRUE) {
-  commits <- recent_vtest()
+most_recent_vtest <- function(dir = ".", start = "", main_branch = TRUE) {
+  commits <- recent_vtest(n = NULL)
   idx <- min(which(!is.na(commits$resultset_hash)))
   commits[idx, ]
 }
