@@ -41,14 +41,15 @@ copy_css <- function(base_path) {
 
 # Borrowed this from staticdocs
 inst_path <- function() {
-  srcref <- attr(vtest, "srcref")
+  envname <- environmentName(environment(inst_path))
 
-  if (is.null(srcref)) {
-    # Probably in package
+  # If installed in package, envname == "vtest"
+  # If loaded with load_all, envname == "package:vtest"
+  # (This is kind of strange)
+  if (envname == "vtest") {
     system.file(package = "vtest")
   } else {
-    # Probably in development
-    file.path(dirname(dirname(attr(srcref, "srcfile")$filename)),
-      "inst")
+    srcfile <- attr(attr(inst_path, "srcref"), "srcfile")
+    file.path(dirname(dirname(srcfile$filename)), "inst")
   }
 }
