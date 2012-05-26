@@ -21,6 +21,8 @@
 vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
   init_vtest(pkg)
 
+  message("Comparing '", ref1, "' to '", ref2, "'.")
+
   if (ref1 == "recent") {
     recent <- most_recent_vtest()
     message("Comparing to most recent commit with saved resultset: ", recent$commit, ".")
