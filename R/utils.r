@@ -41,7 +41,7 @@ copy_css <- function(base_path) {
 
 # Borrowed this from staticdocs
 inst_path <- function() {
-  envname <- environmentName(environment(inst_path))
+  envname <- environmentName(parent.env(environment()))
 
   # If installed in package, envname == "vtest"
   # If loaded with load_all, envname == "package:vtest"
