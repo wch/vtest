@@ -1,6 +1,6 @@
 Package: vtest
 Title: Tools for visual testing of R packages
-Version: 0.0.2
+Version: 0.0.3
 Author: Winston Chang <winston@stdout.org>
 Maintainer: Winston Chang <winston@stdout.org>
 Description: Tools for visual testing of R packages
