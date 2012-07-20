@@ -1,0 +1,11 @@
+\name{load_resultsets}
+\alias{load_resultsets}
+\title{Get the resultset table for a given commit or resultset_hash}
+\usage{
+  load_resultsets(resultset_hash = NULL, commit = NULL)
+}
+\description{
+  Get the resultset table for a given commit or
+  resultset_hash
+}
+

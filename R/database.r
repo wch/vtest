@@ -1,6 +1,7 @@
 # Functions that interact with the test result database
 
-# Get the resultset table for a given commit or resultset_hash
+#' Get the resultset table for a given commit or resultset_hash
+#' @export
 load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
   assert_vtest_pkg_loaded()
 
@@ -30,7 +31,8 @@ load_resultsets <- function(resultset_hash = NULL, commit = NULL) {
 }
 
 
-# Get the resultset table for the last test run
+#' Get the resultset table for the last test run
+#' @export
 load_lastresultset <- function() {
   assert_vtest_pkg_loaded()
   return(read.csv(get_vtest_lasttest_resultset_file(), stringsAsFactors = FALSE))
@@ -63,6 +65,7 @@ hash_resultset <- function(t) {
 }
 
 #' Load the commit-resultset_hash table
+#' @export
 load_commits_table <- function() {
   assert_vtest_pkg_loaded()
 
