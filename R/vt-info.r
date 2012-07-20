@@ -83,7 +83,9 @@ get_vtest_resultset <- function() vt$resultset
 
 
 # Add information about a single test
-append_vtest_resultset <- function(context, desc, type, width, height, dpi, err, hash, order) {
+append_vtest_resultset <- function(context, desc, type, width, height, dpi,
+  err, hash, order, expr, errmsg) {
+
   # Check that context + description aren't already used
   if (sum(context == vt$resultset$context  &  desc == vt$resultset$desc) != 0)
     stop(context, ":\"", desc, "\" cannot be added to resultset because it is already present.")
@@ -91,7 +93,7 @@ append_vtest_resultset <- function(context, desc, type, width, height, dpi, err,
   vt$resultset <- rbind(vt$resultset,
     data.frame(context = context, desc = desc, type = type, width = width,
       height = height, dpi = dpi, err = err, hash = hash,
-      order = order, stringsAsFactors = FALSE))
+      order = order, expr = expr, errmsg = errmsg, stringsAsFactors = FALSE))
 }
 
 

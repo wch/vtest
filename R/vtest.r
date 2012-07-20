@@ -245,7 +245,101 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
   # Append the info for this test to the resultset
   append_vtest_resultset(context = get_vcontext(), desc = desc,
     type = device, width = width, height = height, dpi = dpi,
-    err = err, hash = filehash, order = get_vcontext_count())
+    err = err, hash = filehash, order = get_vcontext_count(),
+    expr = "", errmsg = "")
+
+  message(".", appendLF = FALSE)
+}
+
+
+#' Save an individual test to file, and record information using append_vtest_resultset
+#'
+#' This presently only works with pdf; other file types will fail
+#'
+#' @param desc A short description of the test
+#' @param expr An expression to evaluate. This should generate the plot.
+#' @param filename Output filename (not including extension, like ".pdf"). If NULL, use MD5
+#'   hash of `desc` as the filename.
+#' @param width Width in inches
+#' @param height Height in inches
+#' @param dpi Pixels per inch (OK, it really should be ppi)
+#' @param device String with name of output device. Only "pdf" is supported now.
+#' @param err Error status. ok, warn, or error
+#' @param hash A hash of the file contents
+#' @export
+save_vtest2 <- function(desc = NULL, expr = NULL, width = 4, height = 4,
+  dpi = 72, device = "pdf") {
+
+  if (is.null(get_vcontext()))     stop("Must have active vcontext")
+  if (!is.character(match.call()$desc) || is.null(desc) || desc == "")
+    stop("desc must be a non-empty string")
+  if (is.null(match.call()$expr))  stop("expr must not be NULL")
+
+  if (device == "pdf")  dpi <- NA
+  else                  stop('Only "pdf" device supported at this time')
+
+  err <- "ok"  # Use this to track if there's a warning or error when using ggsave
+  err_obj <- list() # Store warning/error objects
+
+  # Save the pdf to a temporary file
+  temppdf <- tempfile("vtest")
+
+  pdf(temppdf, width = width, height = height, compress = FALSE)
+
+  # Run the test and mark if warning or error
+  ret <- withCallingHandlers2(expr,
+    warning = function(w) { err <<- "warn";  err_obj <<- c(err_obj, list(w)) },
+    error   = function(e) { err <<- "error"; err_obj <<- c(err_obj, list(e)) })
+
+  # If it's a ggplot object, we need to print it (not necessary for
+  # other graphics, like grid or base graphics)
+  if (inherits(ret, "ggplot") && (err == "ok" || err == "warn" )) {
+    ret2 <- withCallingHandlers2(print(ret),
+      parentenv = parent.frame(),
+      warning = function(w) { err <<- "warn";  err_obj <<- c(err_obj, list(w)) },
+      error   = function(e) { err <<- "error"; err_obj <<- c(err_obj, list(e)) })
+  }
+
+  dev.off()
+
+  # Extract the error/warning messages and put them into one string
+  err_str <- vapply(err_obj, function(x) x$message, character(1))
+  err_str <- paste(err_str, collapse="\n")
+
+  # Zero out the dates/producer and write modified PDF file to the output dir
+  cleanpdf <- tempfile("vtest_cleaned")
+  zero_pdf_info(temppdf, cleanpdf)
+
+  unlink(temppdf)  # Remove the file in the temp dir
+
+  # Get a hash of the file contents
+  filehash <- digest(cleanpdf, file = TRUE)
+
+  # Rename file to hash and move to lasttest_dir
+  if (!file.exists(file.path(get_vtest_lasttest_dir(), filehash)))
+    file.rename(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
+  else
+    unlink(cleanpdf)
+
+
+  # Get a string representation of expr
+  expr_str <- deparse(match.call()$expr, width.cutoff = 100L)
+
+  # Drop opening and closing braces, if present, and
+  # strip out leading indentation
+  if (expr_str[1] == "{"  &&  expr_str[length(expr_str)] == "}") {
+    expr_str <- expr_str[ 2:(length(expr_str)-1) ]
+    expr_str <- gsub("^    ", "", expr_str)
+  }
+  expr_str <- paste(expr_str, collapse="\n")
+
+  inc_vcontext_count()
+
+  # Append the info for this test to the resultset
+  append_vtest_resultset(context = get_vcontext(), desc = desc,
+    type = device, width = width, height = height, dpi = dpi,
+    err = err, hash = filehash, order = get_vcontext_count(),
+    expr = expr_str, errmsg = err_str)
 
   message(".", appendLF = FALSE)
 }

@@ -1,0 +1,35 @@
+\name{save_vtest2}
+\alias{save_vtest2}
+\title{Save an individual test to file, and record information using append_vtest_resultset}
+\usage{
+  save_vtest2(desc = NULL, expr = NULL, width = 4,
+    height = 4, dpi = 72, device = "pdf")
+}
+\arguments{
+  \item{desc}{A short description of the test}
+
+  \item{expr}{An expression to evaluate. This should
+  generate the plot.}
+
+  \item{filename}{Output filename (not including extension,
+  like ".pdf"). If NULL, use MD5 hash of `desc` as the
+  filename.}
+
+  \item{width}{Width in inches}
+
+  \item{height}{Height in inches}
+
+  \item{dpi}{Pixels per inch (OK, it really should be ppi)}
+
+  \item{device}{String with name of output device. Only
+  "pdf" is supported now.}
+
+  \item{err}{Error status. ok, warn, or error}
+
+  \item{hash}{A hash of the file contents}
+}
+\description{
+  This presently only works with pdf; other file types will
+  fail
+}
+

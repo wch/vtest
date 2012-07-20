@@ -39,6 +39,7 @@ copy_css <- function(base_path) {
 }
 
 
+# Find the installed path of this package
 # Borrowed this from staticdocs
 inst_path <- function() {
   envname <- environmentName(parent.env(environment()))
@@ -52,4 +53,18 @@ inst_path <- function() {
     srcfile <- attr(attr(inst_path, "srcref"), "srcfile")
     file.path(dirname(dirname(srcfile$filename)), "inst")
   }
+}
+
+
+# This is a duplicate of the base function \code{withCallingHandlers},
+# except it also has the ability to specify the frame in which to
+# evaluate the expression.
+withCallingHandlers2 <- function (expr, env = parent.frame(), ...)
+{
+    handlers <- list(...)
+    classes <- names(handlers)
+    if (length(classes) != length(handlers))
+        stop("bad handler specification")
+    .Internal(.addCondHands(classes, handlers, env, NULL, TRUE))
+    expr
 }
