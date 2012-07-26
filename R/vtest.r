@@ -15,7 +15,7 @@ NULL
 #' @param showhelp if \code{TRUE}, print helpful messages.
 #'
 #' @export
-vtest <- function(pkg = NULL, filter = "", showhelp = TRUE) {
+vtest <- function(pkg = ".", filter = "", showhelp = TRUE) {
   pkg <- as.package(pkg)
   load_all(pkg, reset = TRUE)
 
