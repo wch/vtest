@@ -18,7 +18,7 @@
 #'
 #' @seealso \code{\link{vdiff_webpage}}
 #' @export
-vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "", all = FALSE) {
+vdiffstat <- function(ref1 = "HEAD", ref2 = "", pkg = ".", filter = "", all = FALSE) {
   init_vtest(pkg)
 
   message("Comparing '", ref1, "' to '", ref2, "'.")

@@ -16,7 +16,7 @@
 #' @seealso \code{\link{vdiff_webpage}} for creating a web page for comparing
 #'   results of tests in two different commits.
 #' @export
-vtest_webpage <- function(ref = "", pkg = NULL, filter = "", convertpng = TRUE,
+vtest_webpage <- function(ref = "", pkg = ".", filter = "", convertpng = TRUE,
       prompt = TRUE) {
   init_vtest(pkg)
 

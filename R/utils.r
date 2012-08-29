@@ -40,14 +40,11 @@ copy_css <- function(base_path) {
 
 
 # Find the installed path of this package
-# Borrowed this from staticdocs
 inst_path <- function() {
   envname <- environmentName(parent.env(environment()))
 
-  # If installed in package, envname == "vtest"
-  # If loaded with load_all, envname == "package:vtest"
-  # (This is kind of strange)
-  if (envname == "vtest") {
+  # Check if we're loaded with devtools or the normal way
+  if (is.null(dev_meta("vtest"))) {
     system.file(package = "vtest")
   } else {
     srcfile <- attr(attr(inst_path, "srcref"), "srcfile")

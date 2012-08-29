@@ -27,7 +27,7 @@
 #' @seealso \code{\link{vtest_webpage}} for creating a web page of results for
 #'   a single commit.
 #' @export
-vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = NULL, filter = "",
+vdiff_webpage <- function(ref1 = "HEAD", ref2 = "", pkg = ".", filter = "",
       convertpng = TRUE, method = "ghostscript", prompt = TRUE) {
   # TODO: message about weird color space in conversion using convert
   # TODO: print message about png option, and slow png vs safari-only pdf

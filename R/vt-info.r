@@ -13,18 +13,17 @@ vt <- new.env(hash = TRUE, parent = emptyenv())
 #'   it will be set to packagedir/visual_test/vtest/.
 #'
 #' @export
-init_vtest <- function(pkg = NULL, testdir = NULL, resultdir = NULL) {
+init_vtest <- function(pkg = ".", testdir = NULL, resultdir = NULL) {
 
   # Close context, if open
   if (!is.null(get_vcontext())) set_vcontext(NULL)
 
   # Reset vt to starting state
-  vt$pkg <- NULL       # The package object that's being tested
+  vt$pkg <- as.package(pkg)
   vt$testdir <- NULL   # The dir of the test scripts(usually package/visual_test/)
   vt$resultdir <- NULL # Where the database files are saved
   vt$resultset <- NULL # Information about each test
 
-  vt$pkg <- as.package(pkg)
 
   # The directory where visual test scripts are stored
   if (is.null(testdir))
