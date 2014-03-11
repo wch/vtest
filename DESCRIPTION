@@ -14,18 +14,4 @@ Imports:
     whisker,
     stringr
 License: MIT
-Collate:
-    'vdiff-webpage.r'
-    'vdiffstat.r'
-    'vtest-webpage.r'
-    'vtest.r'
-    'render.r'
-    'database.r'
-    'git.r'
-    'image-utils.r'
-    'utils.r'
-    'git-db.r'
-    'vcontext.r'
-    'vt-info.r'
-    'db-check.r'
-    'ggsave2.r'
+Roxygen: list(wrap = FALSE)
