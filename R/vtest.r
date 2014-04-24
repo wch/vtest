@@ -236,7 +236,7 @@ save_vtest <- function(desc = NULL, width = 4, height = 4, dpi = 72, device = "p
 
   # Rename file to hash and move to lasttest_dir
   if (!file.exists(file.path(get_vtest_lasttest_dir(), filehash)))
-    file.rename(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
+    file.copy(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
   else
     unlink(cleanpdf)
 
@@ -317,7 +317,7 @@ save_vtest2 <- function(desc = NULL, expr = NULL, width = 4, height = 4,
 
   # Rename file to hash and move to lasttest_dir
   if (!file.exists(file.path(get_vtest_lasttest_dir(), filehash)))
-    file.rename(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
+    file.copy(cleanpdf, file.path(get_vtest_lasttest_dir(), filehash))
   else
     unlink(cleanpdf)
 
