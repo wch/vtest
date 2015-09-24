@@ -115,7 +115,6 @@ tfoot td {
   border: 1px solid #000;
   border-radius: 3px;
   margin: 20px 10px;
-  width: 1%;
   display: table;
   float: left;
 }
@@ -176,7 +175,7 @@ tfoot td {
   min-width: 250px;
   min-height: 250px;
   float: left;
-  text-align: center;  
+  text-align: center;
   display: table-cell;
 }
 
