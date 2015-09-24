@@ -96,9 +96,22 @@ compare_png <- function(files1, files2, filesout) {
   if (length(files1) == 0) return()
   message("Comparing ", length(files1), " pairs of images")
 
+  # Look for GraphicsMagick's `gm` program first, then try ImageMagick's `compare`.
+  if (nzchar(Sys.which("gm"))) {
+    command <- "gm"
+    opt_args <- "compare"
+    out_args <- "-file"
+  } else if (nzchar(Sys.which("compare"))) {
+    command <- "compare"
+    opt_args <- c("-dissimilarity-threshold", "1")
+    out_args <- character(0)
+  } else {
+    stop("Unable to find `gm` or `compare` program.")
+  }
+
   # Not sure how to build a single command line string to compare (as was done
   #   with convert in convert_pdf2png), so do them individually.
   for (i in seq_along(files1)) {
-    system2("compare", c("-dissimilarity-threshold", "1", files1[i], files2[i], filesout[i]))
+    system2(command, c(opt_args, files1[i], files2[i], out_args, filesout[i]))
   }
 }
